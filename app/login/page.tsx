@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/theme-toggle'
 
@@ -63,9 +64,21 @@ export default function LoginPage() {
       </div>
       
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold">Welcome back</h1>
-          <p className="mt-2 text-muted-foreground">Sign in to your account</p>
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <Image 
+              src="/scribble_logo.png" 
+              alt="Scribble Logo" 
+              width={60} 
+              height={60}
+              className="object-contain"
+            />
+            <h1 className="text-4xl font-bold text-black dark:text-white">SCRIBBLE</h1>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Welcome back</h2>
+            <p className="mt-2 text-muted-foreground">Sign in to your account</p>
+          </div>
         </div>
 
         <form onSubmit={handleLogin} className="mt-8 space-y-6 bg-card p-8 rounded-xl border border-border shadow-lg">

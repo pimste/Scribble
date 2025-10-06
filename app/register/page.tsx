@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { UserRole } from '@/types'
@@ -180,9 +181,21 @@ export default function RegisterPage() {
       </div>
       
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold">Create Account</h1>
-          <p className="mt-2 text-muted-foreground">Join Scribble today</p>
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <Image 
+              src="/scribble_logo.png" 
+              alt="Scribble Logo" 
+              width={60} 
+              height={60}
+              className="object-contain"
+            />
+            <h1 className="text-4xl font-bold text-black dark:text-white">SCRIBBLE</h1>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Create Account</h2>
+            <p className="mt-2 text-muted-foreground">Join Scribble today</p>
+          </div>
         </div>
 
         {/* Step 1: Role Selection */}

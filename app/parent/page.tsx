@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Profile, Message, ChatContact } from '@/types'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { MobileNavigation } from '@/components/MobileNavigation'
 import Link from 'next/link'
 
 interface ChildWithContacts extends Profile {
@@ -155,33 +156,36 @@ export default function ParentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="container max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
+          <div className="flex items-center justify-between mb-2 md:mb-0">
+            <div className="flex items-center gap-3">
+              <Link
+                href="/chat"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Link>
+              <div>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Parental Controls</h1>
+                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
+                  Monitor and manage your children's chat activity
+                </p>
+              </div>
+            </div>
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
 
-      <div className="container max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <Link
-            href="/chat"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Chat
-          </Link>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Parental Controls</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage your children's chat activity
-          </p>
-        </div>
+      <div className="container max-w-7xl mx-auto p-3 md:p-6">
 
         {children.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-12 text-center">
+          <div className="bg-card border border-border rounded-xl p-6 md:p-12 text-center">
             <div className="max-w-md mx-auto space-y-4">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,11 +207,11 @@ export default function ParentPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Left Panel - Children List */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-border">
-                <h2 className="font-semibold">Linked Children</h2>
+            <div className="bg-card border border-border rounded-xl overflow-hidden h-fit md:h-auto">
+              <div className="p-3 md:p-4 border-b border-border">
+                <h2 className="text-sm md:text-base font-semibold">Linked Children</h2>
               </div>
               <div className="divide-y divide-border">
                 {children.map((child) => (
@@ -247,14 +251,14 @@ export default function ParentPage() {
             </div>
 
             {/* Middle Panel - Child Details or Contacts */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="bg-card border border-border rounded-xl overflow-hidden h-fit md:h-auto">
               {selectedChild ? (
                 <>
-                  <div className="p-4 border-b border-border">
-                    <h2 className="font-semibold">{selectedChild.username}'s Contacts</h2>
+                  <div className="p-3 md:p-4 border-b border-border">
+                    <h2 className="text-sm md:text-base font-semibold">{selectedChild.username}'s Contacts</h2>
                   </div>
                   
-                  <div className="p-4 space-y-4">
+                  <div className="p-3 md:p-4 space-y-4">
                     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                       <div>
                         <p className="text-sm font-medium">Messaging Status</p>
@@ -304,14 +308,14 @@ export default function ParentPage() {
             </div>
 
             {/* Right Panel - Messages */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col">
+            <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-fit md:h-[500px] lg:h-auto">
               {selectedContact && selectedChildId ? (
                 <>
-                  <div className="p-4 border-b border-border">
-                    <h2 className="font-semibold">Messages with {selectedContact.username}</h2>
+                  <div className="p-3 md:p-4 border-b border-border">
+                    <h2 className="text-sm md:text-base font-semibold">Messages with {selectedContact.username}</h2>
                   </div>
                   
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 max-h-[400px] md:max-h-none">
                     {messages.length === 0 ? (
                       <p className="text-center text-muted-foreground py-8">
                         No messages yet
@@ -347,6 +351,9 @@ export default function ParentPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNavigation isParent={true} />
     </div>
   )
 }

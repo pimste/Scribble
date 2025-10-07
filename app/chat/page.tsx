@@ -9,7 +9,10 @@ import { MessageList } from '@/components/chat/MessageList'
 import { MessageInput } from '@/components/chat/MessageInput'
 import { UserInfo } from '@/components/chat/UserInfo'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { MobileNavigation } from '@/components/MobileNavigation'
 import Link from 'next/link'
+
+type MobileView = 'contacts' | 'chat' | 'info'
 
 export default function ChatPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -17,6 +20,7 @@ export default function ChatPage() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [mobileView, setMobileView] = useState<MobileView>('contacts')
   const router = useRouter()
   const supabase = createClient()
 
@@ -128,7 +132,14 @@ export default function ChatPage() {
           (newMessage.sender_id === profile.id && newMessage.receiver_id === selectedContactId) ||
           (newMessage.sender_id === selectedContactId && newMessage.receiver_id === profile.id)
         ) {
-          setMessages(prev => [...prev, newMessage])
+          // Prevent duplicate messages - only add if not already in the list
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === newMessage.id)
+            if (exists) {
+              return prev
+            }
+            return [...prev, newMessage]
+          })
         }
       })
       .subscribe()
@@ -141,16 +152,45 @@ export default function ChatPage() {
   const handleSendMessage = async (content: string) => {
     if (!profile || !selectedContactId) return
 
-    await supabase.from('messages').insert({
+    // Create optimistic message with temporary ID
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
       sender_id: profile.id,
       receiver_id: selectedContactId,
       content,
-    })
+      created_at: new Date().toISOString(),
+    }
+
+    // Add message optimistically to show it immediately
+    setMessages(prev => [...prev, optimisticMessage])
+
+    // Insert to database
+    const { data, error } = await supabase.from('messages').insert({
+      sender_id: profile.id,
+      receiver_id: selectedContactId,
+      content,
+    }).select().single()
+
+    if (error) {
+      console.error('Error sending message:', error)
+      // Remove optimistic message if there was an error
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+    } else if (data) {
+      // Replace optimistic message with real message from database
+      setMessages(prev => 
+        prev.map(m => m.id === optimisticMessage.id ? data as Message : m)
+      )
+    }
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  const handleSelectContact = (contactId: string) => {
+    setSelectedContactId(contactId)
+    setMobileView('chat')
   }
 
   const selectedContact = contacts.find(c => c.id === selectedContactId) || null
@@ -165,40 +205,72 @@ export default function ChatPage() {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
-      <div className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">Scribble</h1>
+      {/* Desktop/Tablet Header */}
+      <div className="h-14 md:h-16 border-b border-border bg-card px-3 md:px-6 flex items-center justify-between">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Mobile back button */}
+          {mobileView !== 'contacts' && (
+            <button
+              onClick={() => setMobileView(selectedContactId ? 'chat' : 'contacts')}
+              className="md:hidden p-2 hover:bg-accent rounded-lg"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+          
+          <h1 className="text-xl md:text-2xl font-bold">
+            {mobileView === 'contacts' || !selectedContact ? 'Scribble' : selectedContact.username}
+          </h1>
+          
           {profile && (
-            <span className="text-sm text-muted-foreground">
+            <span className="hidden lg:block text-sm text-muted-foreground">
               Welcome, {profile.username}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        
+        <div className="flex items-center gap-1 md:gap-2">
+          {/* Mobile info button when in chat */}
+          {mobileView === 'chat' && selectedContact && (
+            <button
+              onClick={() => setMobileView('info')}
+              className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors"
+              title="Contact Info"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          )}
+
+          {/* Desktop navigation buttons */}
           <Link
             href="/invite"
-            className="px-4 py-2 rounded-lg border border-border hover:bg-accent transition-colors text-sm font-medium flex items-center gap-2"
+            className="hidden md:flex px-3 lg:px-4 py-2 rounded-lg border border-border hover:bg-accent transition-colors text-sm font-medium items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
-            Invite Friends
+            <span className="hidden lg:inline">Invite</span>
           </Link>
+          
           {profile?.role === 'parent' && (
             <Link
               href="/parent"
-              className="px-4 py-2 rounded-lg border border-border hover:bg-accent transition-colors text-sm font-medium flex items-center gap-2"
+              className="hidden md:flex px-3 lg:px-4 py-2 rounded-lg border border-border hover:bg-accent transition-colors text-sm font-medium items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              Parental Controls
+              <span className="hidden lg:inline">Parent</span>
             </Link>
           )}
+          
           <Link
             href="/settings"
-            className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+            className="hidden md:flex p-2 rounded-lg border border-border hover:bg-accent transition-colors"
             title="Settings"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -206,10 +278,12 @@ export default function ChatPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </Link>
+          
           <ThemeToggle />
+          
           <button
             onClick={handleLogout}
-            className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors text-sm font-medium"
+            className="hidden md:flex px-3 lg:px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors text-sm font-medium"
           >
             Logout
           </button>
@@ -217,19 +291,27 @@ export default function ChatPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Contacts */}
-        <div className="w-80 flex-shrink-0">
+      <div className="flex-1 flex overflow-hidden pb-16 md:pb-0">
+        {/* Left Sidebar - Contacts (Desktop: always visible, Tablet: collapsible, Mobile: view-based) */}
+        <div className={`
+          w-full md:w-80 lg:w-96 flex-shrink-0
+          ${mobileView === 'contacts' ? 'block' : 'hidden'}
+          md:block
+        `}>
           <Sidebar
             contacts={contacts}
             selectedContactId={selectedContactId}
-            onSelectContact={setSelectedContactId}
+            onSelectContact={handleSelectContact}
             currentUserId={profile?.id || ''}
           />
         </div>
 
         {/* Middle Panel - Chat Messages */}
-        <div className="flex-1 flex flex-col bg-background">
+        <div className={`
+          flex-1 flex flex-col bg-background
+          ${mobileView === 'chat' ? 'flex' : 'hidden'}
+          md:flex
+        `}>
           {selectedContactId ? (
             <>
               <MessageList messages={messages} currentUserId={profile?.id || ''} />
@@ -240,17 +322,28 @@ export default function ChatPage() {
               />
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              Select a contact to start chatting
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-6 text-center">
+              <svg className="w-24 h-24 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p className="text-lg font-medium">Select a contact to start chatting</p>
+              <p className="text-sm mt-2">Choose a conversation from the list</p>
             </div>
           )}
         </div>
 
-        {/* Right Sidebar - User Info */}
-        <div className="w-80 flex-shrink-0">
+        {/* Right Sidebar - User Info (Desktop only on large screens, Tablet: hidden, Mobile: view-based) */}
+        <div className={`
+          w-full md:w-0 lg:w-80 xl:w-96 flex-shrink-0 overflow-hidden
+          ${mobileView === 'info' ? 'block md:hidden' : 'hidden'}
+          lg:block
+        `}>
           <UserInfo contact={selectedContact} />
         </div>
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNavigation isParent={profile?.role === 'parent'} />
     </div>
   )
 }

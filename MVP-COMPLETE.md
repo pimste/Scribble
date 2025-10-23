@@ -267,3 +267,4 @@ If you encounter issues:
 
 Built with ❤️ using Next.js, TypeScript, Tailwind CSS, and Supabase.
 
+

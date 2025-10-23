@@ -10,13 +10,13 @@ function getOpenAIClient() {
 }
 
 interface AnalysisRequest {
-  messageIds: string[]
+  childId: string
+  contactId: string
 }
 
-interface SafetyAnalysisResult {
-  bullying: boolean
-  swearing: boolean
-  unsafe: boolean
+interface ConversationSafetyResult {
+  isSafe: boolean
+  concerns: string[]
   explanation: string
 }
 
@@ -43,89 +43,48 @@ export async function POST(request: NextRequest) {
     }
 
     const body: AnalysisRequest = await request.json()
-    const { messageIds } = body
+    const { childId, contactId } = body
 
-    if (!messageIds || !Array.isArray(messageIds) || messageIds.length === 0) {
-      return NextResponse.json({ error: 'Invalid message IDs' }, { status: 400 })
+    if (!childId || !contactId) {
+      return NextResponse.json({ error: 'Missing childId or contactId' }, { status: 400 })
     }
 
-    // Check which messages already have analysis
-    const { data: existingAnalyses } = await supabase
-      .from('message_safety_analysis')
-      .select('*')
-      .in('message_id', messageIds)
+    // Verify parent has access to this child
+    const { data: child } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', childId)
+      .eq('parent_id', user.id)
+      .single()
 
-    const analyzedMessageIds = new Set(existingAnalyses?.map(a => a.message_id) || [])
-    const messageIdsToAnalyze = messageIds.filter(id => !analyzedMessageIds.has(id))
-
-    // Fetch messages that need analysis
-    const newAnalyses = []
-    if (messageIdsToAnalyze.length > 0) {
-      const { data: messages } = await supabase
-        .from('messages')
-        .select('id, content, sender_id, receiver_id')
-        .in('id', messageIdsToAnalyze)
-
-      if (messages && messages.length > 0) {
-        // Verify parent has access to these messages (security check)
-        const { data: children } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('parent_id', user.id)
-
-        const childrenIds = new Set(children?.map(c => c.id) || [])
-        
-        // Filter messages to only those involving the parent's children
-        const authorizedMessages = messages.filter(msg => 
-          childrenIds.has(msg.sender_id) || childrenIds.has(msg.receiver_id)
-        )
-
-        // Use admin client for inserting analysis (bypasses RLS)
-        const supabaseAdmin = createAdminClient()
-
-        // Analyze each message with OpenAI
-        for (const message of authorizedMessages) {
-          try {
-            const analysis = await analyzeMessageWithOpenAI(message.content)
-            
-            const { data: insertedAnalysis, error: insertError } = await supabaseAdmin
-              .from('message_safety_analysis')
-              .insert({
-                message_id: message.id,
-                is_safe: !analysis.bullying && !analysis.swearing && !analysis.unsafe,
-                concerns: [
-                  ...(analysis.bullying ? ['bullying'] : []),
-                  ...(analysis.swearing ? ['swearing'] : []),
-                  ...(analysis.unsafe ? ['unsafe'] : []),
-                ],
-                analysis_details: analysis,
-              })
-              .select()
-              .single()
-
-            if (!insertError && insertedAnalysis) {
-              newAnalyses.push(insertedAnalysis)
-            } else if (insertError) {
-              console.error(`Error inserting analysis for message ${message.id}:`, insertError)
-            }
-          } catch (error) {
-            console.error(`Error analyzing message ${message.id}:`, error)
-            // Continue with other messages even if one fails
-          }
-        }
-      }
+    if (!child) {
+      return NextResponse.json({ error: 'Forbidden - Not your child' }, { status: 403 })
     }
 
-    // Combine existing and new analyses
-    const allAnalyses = [
-      ...(existingAnalyses || []),
-      ...newAnalyses,
-    ]
+    // Fetch all messages in the conversation
+    const { data: messages } = await supabase
+      .from('messages')
+      .select('id, content, sender_id, created_at')
+      .or(`and(sender_id.eq.${childId},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${childId})`)
+      .order('created_at', { ascending: true })
+
+    if (!messages || messages.length === 0) {
+      return NextResponse.json({
+        success: true,
+        isSafe: true,
+        concerns: [],
+        message: 'No messages to analyze',
+      })
+    }
+
+    // Analyze the entire conversation
+    const analysis = await analyzeConversationWithOpenAI(messages, childId)
 
     return NextResponse.json({
       success: true,
-      analyses: allAnalyses,
-      newAnalysesCount: newAnalyses.length,
+      isSafe: analysis.isSafe,
+      concerns: analysis.concerns,
+      explanation: analysis.explanation,
     })
   } catch (error) {
     console.error('Error in analyze-messages API:', error)
@@ -136,11 +95,22 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function analyzeMessageWithOpenAI(content: string): Promise<SafetyAnalysisResult> {
+async function analyzeConversationWithOpenAI(
+  messages: Array<{ id: string; content: string; sender_id: string; created_at: string }>,
+  childId: string
+): Promise<ConversationSafetyResult> {
   const openai = getOpenAIClient()
   
+  // Format the conversation
+  const conversationText = messages
+    .map((msg, idx) => {
+      const sender = msg.sender_id === childId ? 'Child' : 'Contact'
+      return `${idx + 1}. [${sender}]: ${msg.content}`
+    })
+    .join('\n')
+  
   const systemPrompt = `You are a content safety analyzer for a children's messaging app. 
-Analyze the following message for safety concerns. You must check for:
+Analyze the ENTIRE CONVERSATION for safety concerns. You must check for:
 
 1. BULLYING: Any form of harassment, intimidation, threats, mean comments, or hurtful behavior
 2. SWEARING: Profanity, curse words, or inappropriate language
@@ -148,22 +118,22 @@ Analyze the following message for safety concerns. You must check for:
 
 Respond ONLY with a JSON object in this exact format:
 {
-  "bullying": true/false,
-  "swearing": true/false,
-  "unsafe": true/false,
-  "explanation": "Brief explanation of any concerns found"
+  "isSafe": true/false,
+  "concerns": ["bullying", "swearing", "unsafe"],
+  "explanation": "Brief explanation of overall conversation safety"
 }
 
+The "concerns" array should only include the types of concerns found. If the conversation is safe, return an empty array.
 Be strict but fair. Context matters - friendly banter between friends is different from actual bullying.`
 
   const response = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Analyze this message: "${content}"` },
+      { role: 'user', content: `Analyze this conversation:\n\n${conversationText}` },
     ],
-    temperature: 0.3, // Lower temperature for more consistent analysis
-    max_tokens: 200,
+    temperature: 0.3,
+    max_tokens: 300,
   })
 
   const responseText = response.choices[0]?.message?.content || '{}'
@@ -171,19 +141,17 @@ Be strict but fair. Context matters - friendly banter between friends is differe
   try {
     const analysis = JSON.parse(responseText)
     return {
-      bullying: analysis.bullying || false,
-      swearing: analysis.swearing || false,
-      unsafe: analysis.unsafe || false,
-      explanation: analysis.explanation || 'No concerns detected',
+      isSafe: analysis.isSafe ?? true,
+      concerns: Array.isArray(analysis.concerns) ? analysis.concerns : [],
+      explanation: analysis.explanation || 'Conversation appears safe',
     }
   } catch (error) {
     console.error('Error parsing OpenAI response:', responseText)
     // Default to safe if parsing fails
     return {
-      bullying: false,
-      swearing: false,
-      unsafe: false,
-      explanation: 'Analysis parsing error',
+      isSafe: true,
+      concerns: [],
+      explanation: 'Analysis parsing error - defaulting to safe',
     }
   }
 }

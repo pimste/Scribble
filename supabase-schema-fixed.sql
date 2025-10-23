@@ -1,4 +1,5 @@
 -- DROP EXISTING TABLES (run this first if tables exist)
+drop table if exists message_safety_analysis cascade;
 drop table if exists messages cascade;
 drop table if exists contacts cascade;
 drop table if exists profiles cascade;
@@ -34,10 +35,22 @@ create table contacts (
   unique(user1_id, user2_id)
 );
 
+-- Message Safety Analysis table (for OpenAI parental control feature)
+create table message_safety_analysis (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references messages(id) on delete cascade,
+  is_safe boolean not null,
+  concerns text[] default '{}',
+  analysis_details jsonb,
+  analyzed_at timestamp default now(),
+  unique(message_id)
+);
+
 -- Enable Row Level Security
 alter table profiles enable row level security;
 alter table messages enable row level security;
 alter table contacts enable row level security;
+alter table message_safety_analysis enable row level security;
 
 -- Profiles RLS Policies (FIXED - no recursion)
 create policy "Users can view own profile" 
@@ -116,6 +129,42 @@ create policy "Users can create contacts"
   on contacts for insert
   with check (auth.uid() = user1_id or auth.uid() = user2_id);
 
+-- Message Safety Analysis RLS Policies
+create policy "Users can view analysis for own messages"
+  on message_safety_analysis for select
+  using (
+    exists (
+      select 1 from messages
+      where messages.id = message_safety_analysis.message_id
+      and (messages.sender_id = auth.uid() or messages.receiver_id = auth.uid())
+    )
+  );
+
+create policy "Parents can view analysis for children messages"
+  on message_safety_analysis for select
+  using (
+    exists (
+      select 1 from messages
+      join profiles on profiles.id = messages.sender_id
+      where messages.id = message_safety_analysis.message_id
+      and profiles.parent_id = auth.uid()
+    ) or
+    exists (
+      select 1 from messages
+      join profiles on profiles.id = messages.receiver_id
+      where messages.id = message_safety_analysis.message_id
+      and profiles.parent_id = auth.uid()
+    )
+  );
+
+create policy "Service role can insert analysis"
+  on message_safety_analysis for insert
+  with check (auth.jwt() ->> 'role' = 'service_role');
+
+create policy "Service role can update analysis"
+  on message_safety_analysis for update
+  using (auth.jwt() ->> 'role' = 'service_role');
+
 -- Indexes for better performance
 create index idx_messages_sender on messages(sender_id);
 create index idx_messages_receiver on messages(receiver_id);
@@ -126,4 +175,13 @@ create index idx_profiles_parent on profiles(parent_id);
 create index idx_profiles_invite_code on profiles(invite_code);
 create index idx_profiles_username on profiles(username);
 create index idx_profiles_auth_email on profiles(auth_email);
+create index idx_message_safety_analysis_message_id on message_safety_analysis(message_id);
+create index idx_message_safety_analysis_is_safe on message_safety_analysis(is_safe);
+create index idx_message_safety_analysis_analyzed_at on message_safety_analysis(analyzed_at desc);
+
+-- Comments for documentation
+comment on table message_safety_analysis is 'Stores OpenAI safety analysis results for messages. Prevents duplicate API calls and provides cached safety information for parental controls.';
+comment on column message_safety_analysis.is_safe is 'Overall safety flag: true = safe (green), false = concerns detected (red)';
+comment on column message_safety_analysis.concerns is 'Array of detected issues: bullying, swearing, unsafe, etc.';
+comment on column message_safety_analysis.analysis_details is 'Full JSON response from OpenAI for detailed information';
 

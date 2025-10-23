@@ -47,3 +47,4 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
   )
 }
 
+

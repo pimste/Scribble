@@ -32,3 +32,23 @@ export interface ChatContact {
   role: UserRole;
   restricted: boolean;
 }
+
+export type SafetyConcern = 'bullying' | 'swearing' | 'unsafe' | 'clean';
+
+export interface MessageSafetyAnalysis {
+  id: string;
+  message_id: string;
+  is_safe: boolean;
+  concerns: string[];
+  analysis_details: {
+    bullying: boolean;
+    swearing: boolean;
+    unsafe: boolean;
+    explanation: string;
+  } | null;
+  analyzed_at: string;
+}
+
+export interface MessageWithSafety extends Message {
+  safety?: MessageSafetyAnalysis;
+}

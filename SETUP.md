@@ -8,12 +8,28 @@ npm install
 ```
 
 ### Step 2: Environment Variables
-The `.env.local` file has been created with your Supabase credentials. If you need to recreate it, use these values:
+The `.env.local` file should contain the following environment variables:
 
+#### Required Variables
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://ejlvpfbwnnlsiasorcir.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqbHZwZmJ3bm5sc2lhc29yY2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1ODgwOTksImV4cCI6MjA3NTE2NDA5OX0.XPAMTz5M2NilZAvefM7R-qfvPyqOoPM4myBSCuHbxYY
 ```
+
+#### Additional Variables for Features
+
+**For Parental Control Message Safety Analysis (OpenAI):**
+```env
+OPENAI_API_KEY=your-openai-api-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+```
+
+**For Email Verification (Resend):**
+```env
+RESEND_API_KEY=your-resend-api-key
+```
+
+> **Note:** The `SUPABASE_SERVICE_ROLE_KEY` can be found in your Supabase Dashboard under Settings > API > service_role key (keep this secret!)
 
 ### Step 3: Set Up Supabase Database
 
@@ -23,15 +39,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 2. Select your project: `ejlvpfbwnnlsiasorcir`
 3. Click on "SQL Editor" in the left sidebar
 4. Click "New Query"
-5. Copy the entire contents of `supabase-schema.sql`
+5. Copy the entire contents of `supabase-schema-fixed.sql`
 6. Paste into the SQL editor
 7. Click "Run" to execute
 
 This will create:
-- ✅ All necessary tables (profiles, messages, contacts)
+- ✅ All necessary tables (profiles, messages, contacts, message_safety_analysis)
 - ✅ Row Level Security policies
 - ✅ Indexes for performance
 - ✅ Constraints and triggers
+
+**Note:** The `message_safety_analysis` table is used for OpenAI-powered parental control features. If you already have the base schema, see the migration SQL below to add just this table.
 
 ### Step 4: Run the Development Server
 ```bash
@@ -137,4 +155,5 @@ After confirming the MVP works, consider adding:
 ---
 
 **Need help?** Check the main README.md for detailed documentation.
+
 

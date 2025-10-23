@@ -120,10 +120,6 @@ export default function ParentPage() {
 
       if (messagesData) {
         setMessages(messagesData)
-        // Automatically analyze conversation after fetching
-        if (messagesData.length > 0) {
-          analyzeConversation(selectedChildId, selectedContactId)
-        }
       }
     }
 
@@ -348,80 +344,133 @@ export default function ParentPage() {
             <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-fit md:h-[500px] lg:h-auto">
               {selectedContact && selectedChildId ? (
                 <>
-                  <div className="p-3 md:p-4 border-b border-border">
-                    <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-sm md:text-base font-semibold">Messages with {selectedContact.username}</h2>
-                      {analyzingConversation && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Analyzing...
-                        </span>
-                      )}
-                    </div>
+                  <div className="p-3 md:p-4">
+                    <h2 className="text-sm md:text-base font-semibold mb-3">Conversation with {selectedContact.username}</h2>
                     
-                    {/* Conversation Safety Status */}
-                    {conversationSafety && (
-                      <div className={`p-3 rounded-lg ${conversationSafety.isSafe ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'}`}>
-                        <div className="flex items-center gap-2 mb-1">
-                          {conversationSafety.isSafe ? (
+                    {messages.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-12">
+                        <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <p>No conversation yet</p>
+                      </div>
+                    ) : !conversationSafety ? (
+                      <div className="text-center py-12">
+                        <svg className="w-16 h-16 mx-auto mb-4 text-primary/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0121 12c0 5.523-4.477 10-10 10S1 17.523 1 12 5.477 2 11 2c2.12 0 4.083.668 5.693 1.796m0 0l-3.182 3.182m0 0L12 5.966" />
+                        </svg>
+                        <p className="text-muted-foreground mb-4">
+                          <span className="font-semibold text-foreground">{messages.length}</span> message{messages.length !== 1 ? 's' : ''} in this conversation
+                        </p>
+                        <button
+                          onClick={() => analyzeConversation(selectedChildId!, selectedContactId!)}
+                          disabled={analyzingConversation}
+                          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                        >
+                          {analyzingConversation ? (
                             <>
-                              <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                               </svg>
-                              <span className="text-sm font-semibold text-green-600">Conversation Safe</span>
+                              Analyzing...
                             </>
                           ) : (
                             <>
-                              <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                               </svg>
-                              <span className="text-sm font-semibold text-red-600">Concerns Detected</span>
+                              Analyze Conversation
                             </>
                           )}
-                        </div>
-                        {conversationSafety.concerns.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {conversationSafety.concerns.map((concern, idx) => (
-                              <span key={idx} className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-700 font-medium capitalize">
-                                {concern}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-2 italic">
-                          {conversationSafety.explanation}
+                        </button>
+                        <p className="text-xs text-muted-foreground mt-3">
+                          Message content is private - only safety analysis will be shown
                         </p>
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 max-h-[400px] md:max-h-none">
-                    {messages.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">
-                        No messages yet
-                      </p>
                     ) : (
-                      messages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`p-3 rounded-lg transition-all ${
-                            message.sender_id === selectedChildId
-                              ? 'bg-primary/10 ml-4'
-                              : 'bg-muted mr-4'
-                          }`}
-                        >
-                          <p className="text-sm font-medium mb-1">
-                            {message.sender_id === selectedChildId ? selectedChild?.username : selectedContact.username}
-                          </p>
-                          <p className="text-sm">{message.content}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatTime(message.created_at)}
-                          </p>
+                      <div>
+                        {/* Conversation Safety Status */}
+                        <div className={`p-4 md:p-6 rounded-lg ${conversationSafety.isSafe ? 'bg-green-500/10 border-2 border-green-500/30' : 'bg-red-500/10 border-2 border-red-500/30'}`}>
+                          <div className="flex items-start gap-3 mb-3">
+                            {conversationSafety.isSafe ? (
+                              <>
+                                <svg className="w-8 h-8 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0121 12c0 5.523-4.477 10-10 10S1 17.523 1 12 5.477 2 11 2c2.12 0 4.083.668 5.693 1.796m0 0l-3.182 3.182m0 0L12 5.966" />
+                                </svg>
+                                <div className="flex-1">
+                                  <h3 className="text-lg font-bold text-green-700 mb-1">Conversation Safe</h3>
+                                  <p className="text-sm text-green-600">No concerns detected in this conversation.</p>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-8 h-8 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div className="flex-1">
+                                  <h3 className="text-lg font-bold text-red-700 mb-1">Concerns Detected</h3>
+                                  <p className="text-sm text-red-600">Please review the concerns found in this conversation.</p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          
+                          {conversationSafety.concerns.length > 0 && (
+                            <div className="mb-3">
+                              <p className="text-xs font-semibold text-muted-foreground mb-2">Concerns Found:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {conversationSafety.concerns.map((concern, idx) => (
+                                  <span key={idx} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-700 font-semibold capitalize text-sm">
+                                    {concern}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="pt-3 border-t border-current/10">
+                            <p className="text-xs font-semibold text-muted-foreground mb-1">Analysis:</p>
+                            <p className="text-sm italic">
+                              {conversationSafety.explanation}
+                            </p>
+                          </div>
                         </div>
-                      ))
+                        
+                        {/* Message Count Info & Re-analyze Button */}
+                        <div className="mt-4 space-y-3">
+                          <div className="p-3 bg-muted/50 rounded-lg text-center">
+                            <p className="text-sm text-muted-foreground">
+                              <span className="font-semibold text-foreground">{messages.length}</span> message{messages.length !== 1 ? 's' : ''} analyzed in this conversation
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Message content is private - only safety analysis is shown
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => analyzeConversation(selectedChildId!, selectedContactId!)}
+                            disabled={analyzingConversation}
+                            className="w-full px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {analyzingConversation ? (
+                              <>
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Re-analyzing...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Re-analyze Conversation
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </>

@@ -73,6 +73,37 @@ export async function POST(request: Request) {
         success: true, 
         message: `User ${username} deleted successfully` 
       })
+    } else if (action === 'update-password') {
+      // Update user password
+      console.log(`Updating password for user: ${username}`)
+      
+      // Find the user
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('id, auth_email, username')
+        .eq('username', username)
+        .single()
+
+      if (fetchError || !profile) {
+        return NextResponse.json({ 
+          error: `User ${username} not found` 
+        }, { status: 404 })
+      }
+
+      // Update the password using admin API
+      const { error: updateError } = await supabase.auth.admin.updateUserById(
+        profile.id,
+        { password }
+      )
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 400 })
+      }
+
+      return NextResponse.json({ 
+        success: true, 
+        message: `Password updated successfully for ${username}` 
+      })
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })

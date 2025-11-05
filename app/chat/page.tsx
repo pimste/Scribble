@@ -80,21 +80,27 @@ export default function ChatPage() {
 
     fetchContacts()
 
-    // Subscribe to contact changes
+    // Subscribe to contact changes with unique channel name
+    const contactsChannelName = `contacts:${profile.id}`
     const contactsChannel = supabase
-      .channel('contacts-changes')
+      .channel(contactsChannelName)
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'contacts',
-        filter: `user1_id=eq.${profile.id},user2_id=eq.${profile.id}`
-      }, () => {
+      }, (payload) => {
+        // Refresh contacts when any contact change occurs
+        console.log('Contact change detected:', payload)
         fetchContacts()
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Contacts subscription active')
+        }
+      })
 
     return () => {
-      contactsChannel.unsubscribe()
+      supabase.removeChannel(contactsChannel)
     }
   }, [profile, supabase])
 
@@ -119,20 +125,24 @@ export default function ChatPage() {
 
     fetchMessages()
 
-    // Subscribe to new messages
+    // Subscribe to new messages with unique channel name per conversation
+    const channelName = `messages:${[profile.id, selectedContactId].sort().join('-')}`
+    
     const messagesChannel = supabase
-      .channel('messages-changes')
+      .channel(channelName)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
       }, (payload) => {
         const newMessage = payload.new as Message
+        
+        // Only process messages for this conversation
         if (
           (newMessage.sender_id === profile.id && newMessage.receiver_id === selectedContactId) ||
           (newMessage.sender_id === selectedContactId && newMessage.receiver_id === profile.id)
         ) {
-          // Prevent duplicate messages - only add if not already in the list
+          // Add message if not already present (prevents duplicates from optimistic updates)
           setMessages(prev => {
             const exists = prev.some(m => m.id === newMessage.id)
             if (exists) {
@@ -142,10 +152,17 @@ export default function ChatPage() {
           })
         }
       })
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Real-time subscription active for:', channelName)
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Real-time subscription error for:', channelName)
+        }
+      })
 
     return () => {
-      messagesChannel.unsubscribe()
+      supabase.removeChannel(messagesChannel)
     }
   }, [profile, selectedContactId, supabase])
 

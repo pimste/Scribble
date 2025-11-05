@@ -165,6 +165,10 @@ create policy "Service role can update analysis"
   on message_safety_analysis for update
   using (auth.jwt() ->> 'role' = 'service_role');
 
+-- Enable Realtime for messages table (critical for real-time messaging)
+alter publication supabase_realtime add table messages;
+alter publication supabase_realtime add table contacts;
+
 -- Indexes for better performance
 create index idx_messages_sender on messages(sender_id);
 create index idx_messages_receiver on messages(receiver_id);

@@ -116,6 +116,12 @@ Analyze the ENTIRE CONVERSATION for safety concerns. You must check for:
 2. SWEARING: Profanity, curse words, or inappropriate language
 3. UNSAFE: Content that is not PG-rated, including sexual content, violence, drug references, or anything inappropriate for children
 
+IMPORTANT: 
+- Conversations can be in ANY LANGUAGE (English, Dutch, Spanish, French, etc.). This is perfectly normal and acceptable.
+- DO NOT flag a conversation as unsafe just because it's not in English.
+- You should detect bullying, swearing, and unsafe content in ALL languages.
+- Normal greetings, friendly conversations, and casual chat in any language are SAFE.
+
 Respond ONLY with a JSON object in this exact format:
 {
   "isSafe": true/false,

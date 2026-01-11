@@ -160,7 +160,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
                     className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
-                <div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2">
+                <div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2 auto-rows-max">
                   {loadingGifs ? (
                     <div className="col-span-2 flex items-center justify-center h-32">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -175,12 +175,13 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
                         key={gif.id}
                         type="button"
                         onClick={() => handleGifSelect(gif)}
-                        className="relative aspect-square overflow-hidden rounded-lg hover:ring-2 hover:ring-primary transition-all"
+                        className="relative overflow-hidden rounded-lg hover:ring-2 hover:ring-primary transition-all bg-muted"
                       >
                         <img
                           src={gif.preview}
                           alt={gif.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-auto"
+                          loading="lazy"
                         />
                       </button>
                     ))

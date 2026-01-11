@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 
-// Tenor API configuration
-// Get your free API key at: https://developers.google.com/tenor/guides/quickstart
-const TENOR_API_KEY = process.env.TENOR_API_KEY || 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ' // This is a demo key
-const TENOR_API_URL = 'https://tenor.googleapis.com/v2'
+// GIPHY API configuration
+// Get your free API key at: https://developers.giphy.com/
+const GIPHY_API_KEY = process.env.GIPHY_API_KEY || ''
+const GIPHY_API_URL = 'https://api.giphy.com/v1/gifs'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -14,11 +14,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Query parameter required' }, { status: 400 })
   }
 
+  if (!GIPHY_API_KEY) {
+    return NextResponse.json(
+      { error: 'GIPHY API key not configured' },
+      { status: 500 }
+    )
+  }
+
   try {
-    // Search GIFs using Tenor API
-    // contentfilter=high ensures only G-rated content for child safety
+    // Search GIFs using GIPHY API
+    // rating=g ensures only G-rated content for child safety
     const response = await fetch(
-      `${TENOR_API_URL}/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=${limit}&contentfilter=high&media_filter=gif`,
+      `${GIPHY_API_URL}/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=${limit}&rating=g&lang=en`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -27,19 +34,19 @@ export async function GET(request: Request) {
     )
 
     if (!response.ok) {
-      throw new Error('Failed to fetch GIFs from Tenor')
+      throw new Error('Failed to fetch GIFs from GIPHY')
     }
 
     const data = await response.json()
 
-    // Transform Tenor response to simplified format
-    const gifs = data.results.map((result: any) => ({
+    // Transform GIPHY response to simplified format
+    const gifs = data.data.map((result: any) => ({
       id: result.id,
-      title: result.content_description || result.itemurl,
-      url: result.media_formats.gif.url,
-      preview: result.media_formats.tinygif.url,
-      width: result.media_formats.gif.dims[0],
-      height: result.media_formats.gif.dims[1],
+      title: result.title || 'GIF',
+      url: result.images.fixed_height.url,
+      preview: result.images.fixed_height_small.url,
+      width: parseInt(result.images.fixed_height.width),
+      height: parseInt(result.images.fixed_height.height),
     }))
 
     return NextResponse.json({ gifs })

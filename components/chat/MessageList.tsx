@@ -30,20 +30,42 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
         messages.map((message) => {
           const isOwn = message.sender_id === currentUserId
           const isSending = message.id.startsWith('temp-')
+          const isGif = message.content_type === 'gif' && message.media_url
+          
           return (
             <div
               key={message.id}
               className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                className={`max-w-[70%] rounded-2xl ${
+                  isGif ? 'p-2' : 'px-4 py-2'
+                } ${
                   isOwn
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-foreground'
                 } ${isSending ? 'opacity-70' : 'opacity-100'} transition-opacity`}
               >
-                <p className="break-words">{message.content}</p>
+                {isGif ? (
+                  <div className="space-y-1">
+                    <div className="relative rounded-lg overflow-hidden max-w-xs">
+                      <img
+                        src={message.media_url}
+                        alt={message.content}
+                        className="w-full h-auto"
+                        loading="lazy"
+                      />
+                    </div>
+                    {message.content && (
+                      <p className="text-xs px-2 opacity-80">{message.content}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="break-words whitespace-pre-wrap">{message.content}</p>
+                )}
                 <div className={`flex items-center gap-1 text-xs mt-1 ${
+                    isGif ? 'px-2' : ''
+                  } ${
                     isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
                   }`}>
                   <span>{formatTime(message.created_at)}</span>

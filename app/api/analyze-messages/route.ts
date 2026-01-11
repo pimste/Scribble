@@ -12,6 +12,7 @@ function getOpenAIClient() {
 interface AnalysisRequest {
   childId: string
   contactId: string
+  sinceTimestamp?: string // Optional: only analyze messages after this timestamp
 }
 
 interface ConversationSafetyResult {
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: AnalysisRequest = await request.json()
-    const { childId, contactId } = body
+    const { childId, contactId, sinceTimestamp } = body
 
     if (!childId || !contactId) {
       return NextResponse.json({ error: 'Missing childId or contactId' }, { status: 400 })
@@ -61,23 +62,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden - Not your child' }, { status: 403 })
     }
 
-    // Fetch all messages in the conversation
-    const { data: messages } = await supabase
+    // Fetch messages in the conversation (optionally filtered by timestamp)
+    let query = supabase
       .from('messages')
-      .select('id, content, sender_id, created_at')
+      .select('id, content, content_type, media_url, sender_id, created_at')
       .or(`and(sender_id.eq.${childId},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${childId})`)
-      .order('created_at', { ascending: true })
+    
+    // If sinceTimestamp is provided, only get messages after that time
+    if (sinceTimestamp) {
+      query = query.gt('created_at', sinceTimestamp)
+    }
+    
+    const { data: messages } = await query.order('created_at', { ascending: true })
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({
         success: true,
         isSafe: true,
         concerns: [],
-        message: 'No messages to analyze',
+        message: sinceTimestamp ? 'No new messages to analyze' : 'No messages to analyze',
+        messageCount: 0,
+        analyzedNewOnly: !!sinceTimestamp,
       })
     }
 
-    // Analyze the entire conversation
+    // Analyze the conversation (either all or just new messages)
     const analysis = await analyzeConversationWithOpenAI(messages, childId)
 
     return NextResponse.json({
@@ -85,6 +94,8 @@ export async function POST(request: NextRequest) {
       isSafe: analysis.isSafe,
       concerns: analysis.concerns,
       explanation: analysis.explanation,
+      messageCount: messages.length,
+      analyzedNewOnly: !!sinceTimestamp,
     })
   } catch (error) {
     console.error('Error in analyze-messages API:', error)
@@ -96,7 +107,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function analyzeConversationWithOpenAI(
-  messages: Array<{ id: string; content: string; sender_id: string; created_at: string }>,
+  messages: Array<{ id: string; content: string; content_type?: string; media_url?: string; sender_id: string; created_at: string }>,
   childId: string
 ): Promise<ConversationSafetyResult> {
   const openai = getOpenAIClient()
@@ -105,6 +116,13 @@ async function analyzeConversationWithOpenAI(
   const conversationText = messages
     .map((msg, idx) => {
       const sender = msg.sender_id === childId ? 'Child' : 'Contact'
+      const contentType = msg.content_type || 'text'
+      
+      if (contentType === 'gif' && msg.media_url) {
+        // For GIFs, include a note about the GIF being shared
+        return `${idx + 1}. [${sender}]: [Shared a GIF: ${msg.content}]`
+      }
+      
       return `${idx + 1}. [${sender}]: ${msg.content}`
     })
     .join('\n')
@@ -121,6 +139,8 @@ IMPORTANT:
 - DO NOT flag a conversation as unsafe just because it's not in English.
 - You should detect bullying, swearing, and unsafe content in ALL languages.
 - Normal greetings, friendly conversations, and casual chat in any language are SAFE.
+- GIF messages will appear as "[Shared a GIF: description]" - evaluate the GIF description for appropriateness.
+- GIFs are filtered to G-rated content only, so they are generally safe unless the description suggests otherwise.
 
 Respond ONLY with a JSON object in this exact format:
 {

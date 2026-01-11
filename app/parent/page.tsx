@@ -16,6 +16,8 @@ interface ConversationSafety {
   isSafe: boolean
   concerns: string[]
   explanation: string
+  messageCount?: number
+  analyzedNewOnly?: boolean
 }
 
 export default function ParentPage() {
@@ -26,7 +28,9 @@ export default function ParentPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [analyzingConversation, setAnalyzingConversation] = useState(false)
+  const [analyzingNew, setAnalyzingNew] = useState(false)
   const [conversationSafety, setConversationSafety] = useState<ConversationSafety | null>(null)
+  const [lastCheckedTimes, setLastCheckedTimes] = useState<Record<string, string>>({})
   const router = useRouter()
   const supabase = createClient()
 
@@ -56,6 +60,17 @@ export default function ParentPage() {
       }
 
       setProfile(profileData)
+      
+      // Load last checked times from localStorage
+      const stored = localStorage.getItem(`parentChecks:${user.id}`)
+      if (stored) {
+        try {
+          setLastCheckedTimes(JSON.parse(stored))
+        } catch (e) {
+          console.error('Failed to parse stored check times:', e)
+        }
+      }
+      
       setLoading(false)
     }
 
@@ -126,13 +141,25 @@ export default function ParentPage() {
     fetchMessages()
   }, [selectedChildId, selectedContactId, supabase])
 
-  const analyzeConversation = async (childId: string, contactId: string) => {
-    setAnalyzingConversation(true)
+  const analyzeConversation = async (childId: string, contactId: string, onlyNew: boolean = false) => {
+    if (onlyNew) {
+      setAnalyzingNew(true)
+    } else {
+      setAnalyzingConversation(true)
+    }
+    
     try {
+      const conversationKey = `${childId}:${contactId}`
+      const lastChecked = onlyNew ? lastCheckedTimes[conversationKey] : undefined
+      
       const response = await fetch('/api/analyze-messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ childId, contactId }),
+        body: JSON.stringify({ 
+          childId, 
+          contactId,
+          sinceTimestamp: lastChecked
+        }),
       })
 
       if (response.ok) {
@@ -141,12 +168,24 @@ export default function ParentPage() {
           isSafe: data.isSafe,
           concerns: data.concerns,
           explanation: data.explanation,
+          messageCount: data.messageCount,
+          analyzedNewOnly: data.analyzedNewOnly,
         })
+        
+        // Update last checked time and save to localStorage
+        const now = new Date().toISOString()
+        const newTimes = { ...lastCheckedTimes, [conversationKey]: now }
+        setLastCheckedTimes(newTimes)
+        
+        if (profile) {
+          localStorage.setItem(`parentChecks:${profile.id}`, JSON.stringify(newTimes))
+        }
       }
     } catch (error) {
       console.error('Error analyzing conversation:', error)
     } finally {
       setAnalyzingConversation(false)
+      setAnalyzingNew(false)
     }
   }
 
@@ -362,28 +401,54 @@ export default function ParentPage() {
                         <p className="text-muted-foreground mb-4">
                           <span className="font-semibold text-foreground">{messages.length}</span> message{messages.length !== 1 ? 's' : ''} in this conversation
                         </p>
-                        <button
-                          onClick={() => analyzeConversation(selectedChildId!, selectedContactId!)}
-                          disabled={analyzingConversation}
-                          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
-                        >
-                          {analyzingConversation ? (
-                            <>
-                              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                              </svg>
-                              Analyze Conversation
-                            </>
+                        <div className="flex flex-col gap-2 items-center">
+                          <button
+                            onClick={() => analyzeConversation(selectedChildId!, selectedContactId!, false)}
+                            disabled={analyzingConversation || analyzingNew}
+                            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {analyzingConversation ? (
+                              <>
+                                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Analyzing All...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                </svg>
+                                Analyze All Messages
+                              </>
+                            )}
+                          </button>
+                          {lastCheckedTimes[`${selectedChildId}:${selectedContactId}`] && (
+                            <button
+                              onClick={() => analyzeConversation(selectedChildId!, selectedContactId!, true)}
+                              disabled={analyzingConversation || analyzingNew}
+                              className="px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                              {analyzingNew ? (
+                                <>
+                                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Checking New...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                  </svg>
+                                  Check New Messages Only
+                                </>
+                              )}
+                            </button>
                           )}
-                        </button>
+                        </div>
                         <p className="text-xs text-muted-foreground mt-3">
                           Message content is private - only safety analysis will be shown
                         </p>
@@ -437,38 +502,63 @@ export default function ParentPage() {
                           </div>
                         </div>
                         
-                        {/* Message Count Info & Re-analyze Button */}
+                        {/* Message Count Info & Re-analyze Buttons */}
                         <div className="mt-4 space-y-3">
                           <div className="p-3 bg-muted/50 rounded-lg text-center">
                             <p className="text-sm text-muted-foreground">
-                              <span className="font-semibold text-foreground">{messages.length}</span> message{messages.length !== 1 ? 's' : ''} analyzed in this conversation
+                              <span className="font-semibold text-foreground">{conversationSafety.messageCount ?? messages.length}</span> message{(conversationSafety.messageCount ?? messages.length) !== 1 ? 's' : ''} analyzed
+                              {conversationSafety.analyzedNewOnly && <span className="text-emerald-600 font-semibold"> (new only)</span>}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               Message content is private - only safety analysis is shown
                             </p>
                           </div>
-                          <button
-                            onClick={() => analyzeConversation(selectedChildId!, selectedContactId!)}
-                            disabled={analyzingConversation}
-                            className="w-full px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            {analyzingConversation ? (
-                              <>
-                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Re-analyzing...
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Re-analyze Conversation
-                              </>
-                            )}
-                          </button>
+                          <div className="flex flex-col gap-2">
+                            <button
+                              onClick={() => analyzeConversation(selectedChildId!, selectedContactId!, false)}
+                              disabled={analyzingConversation || analyzingNew}
+                              className="w-full px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                              {analyzingConversation ? (
+                                <>
+                                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Re-analyzing All...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  Re-analyze All Messages
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => analyzeConversation(selectedChildId!, selectedContactId!, true)}
+                              disabled={analyzingConversation || analyzingNew}
+                              className="w-full px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-lg transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                              {analyzingNew ? (
+                                <>
+                                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Checking New...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                  </svg>
+                                  Check New Messages Only
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}

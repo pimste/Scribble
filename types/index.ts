@@ -16,6 +16,8 @@ export interface Message {
   sender_id: string;
   receiver_id: string;
   content: string;
+  content_type?: 'text' | 'gif';
+  media_url?: string;
   created_at: string;
 }
 

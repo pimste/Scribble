@@ -229,7 +229,7 @@ export default function ChatPage() {
     }
   }, [profile, selectedContactId, supabase])
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, contentType: 'text' | 'gif' = 'text', mediaUrl?: string) => {
     if (!profile || !selectedContactId) return
 
     // Create optimistic message with temporary ID
@@ -238,6 +238,8 @@ export default function ChatPage() {
       sender_id: profile.id,
       receiver_id: selectedContactId,
       content,
+      content_type: contentType,
+      media_url: mediaUrl,
       created_at: new Date().toISOString(),
     }
 
@@ -249,6 +251,8 @@ export default function ChatPage() {
       sender_id: profile.id,
       receiver_id: selectedContactId,
       content,
+      content_type: contentType,
+      media_url: mediaUrl,
     }).select().single()
 
     if (error) {

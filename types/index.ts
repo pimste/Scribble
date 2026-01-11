@@ -31,6 +31,7 @@ export interface ChatContact {
   username: string;
   role: UserRole;
   restricted: boolean;
+  unreadCount?: number;
 }
 
 export type SafetyConcern = 'bullying' | 'swearing' | 'unsafe' | 'clean';

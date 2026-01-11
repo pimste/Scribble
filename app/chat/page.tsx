@@ -72,7 +72,34 @@ export default function ChatPage() {
             .in('id', contactIds)
 
           if (profilesData) {
-            setContacts(profilesData as ChatContact[])
+            // Get unread counts for each contact
+            const contactsWithCounts = await Promise.all(
+              profilesData.map(async (contact) => {
+                // Get last viewed timestamp from localStorage
+                const lastViewedKey = `lastViewed:${profile.id}:${contact.id}`
+                const lastViewed = localStorage.getItem(lastViewedKey)
+                
+                // Count unread messages (messages from contact to current user after last viewed)
+                let query = supabase
+                  .from('messages')
+                  .select('id', { count: 'exact', head: true })
+                  .eq('sender_id', contact.id)
+                  .eq('receiver_id', profile.id)
+                
+                if (lastViewed) {
+                  query = query.gt('created_at', lastViewed)
+                }
+                
+                const { count } = await query
+                
+                return {
+                  ...contact,
+                  unreadCount: count || 0
+                }
+              })
+            )
+            
+            setContacts(contactsWithCounts as ChatContact[])
           }
         }
       }
@@ -99,8 +126,38 @@ export default function ChatPage() {
         }
       })
 
+    // Subscribe to all incoming messages to update unread counts
+    const allMessagesChannelName = `all-messages:${profile.id}`
+    const allMessagesChannel = supabase
+      .channel(allMessagesChannelName)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${profile.id}`
+      }, (payload) => {
+        const newMessage = payload.new as Message
+        
+        // Only update count if not viewing this contact's conversation
+        if (newMessage.sender_id !== selectedContactId) {
+          setContacts(prev => 
+            prev.map(c => 
+              c.id === newMessage.sender_id 
+                ? { ...c, unreadCount: (c.unreadCount || 0) + 1 }
+                : c
+            )
+          )
+        }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('All messages subscription active')
+        }
+      })
+
     return () => {
       supabase.removeChannel(contactsChannel)
+      supabase.removeChannel(allMessagesChannel)
     }
   }, [profile, supabase])
 
@@ -150,6 +207,12 @@ export default function ChatPage() {
             }
             return [...prev, newMessage]
           })
+          
+          // Mark as read when viewing the conversation
+          if (newMessage.sender_id === selectedContactId && newMessage.receiver_id === profile.id) {
+            const lastViewedKey = `lastViewed:${profile.id}:${selectedContactId}`
+            localStorage.setItem(lastViewedKey, new Date().toISOString())
+          }
         }
       })
       .subscribe((status) => {
@@ -208,6 +271,17 @@ export default function ChatPage() {
   const handleSelectContact = (contactId: string) => {
     setSelectedContactId(contactId)
     setMobileView('chat')
+    
+    // Mark messages as read by storing current timestamp
+    if (profile) {
+      const lastViewedKey = `lastViewed:${profile.id}:${contactId}`
+      localStorage.setItem(lastViewedKey, new Date().toISOString())
+      
+      // Update contact's unread count to 0
+      setContacts(prev => 
+        prev.map(c => c.id === contactId ? { ...c, unreadCount: 0 } : c)
+      )
+    }
   }
 
   const selectedContact = contacts.find(c => c.id === selectedContactId) || null

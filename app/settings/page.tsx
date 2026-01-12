@@ -295,7 +295,7 @@ export default function SettingsPage() {
                           <label className="block text-sm font-medium mb-2">Status</label>
                           <select 
                             value={status}
-                            onChange={(e) => setStatus(e.target.value)}
+                            onChange={(e) => setStatus(e.target.value as 'online' | 'dnd' | 'away' | 'invisible')}
                             className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                           >
                             <option value="online">🟢 Online</option>

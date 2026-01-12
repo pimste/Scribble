@@ -10,6 +10,7 @@ import { MessageInput } from '@/components/chat/MessageInput'
 import { UserInfo } from '@/components/chat/UserInfo'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { MobileNavigation } from '@/components/MobileNavigation'
+import { AppTour } from '@/components/tour/AppTour'
 import Link from 'next/link'
 
 type MobileView = 'contacts' | 'chat' | 'info'
@@ -22,6 +23,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true)
   const [mobileView, setMobileView] = useState<MobileView>('contacts')
   const [showUserInfo, setShowUserInfo] = useState(true)
+  const [showTour, setShowTour] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -43,6 +45,13 @@ export default function ChatPage() {
 
       if (profileData) {
         setProfile(profileData)
+        
+        // Check if user has seen tour before
+        const hasSeenTour = localStorage.getItem(`tour_completed_${user.id}`)
+        if (!hasSeenTour) {
+          // Show tour for new users after a brief delay
+          setTimeout(() => setShowTour(true), 1000)
+        }
       }
       
       setLoading(false)
@@ -273,6 +282,17 @@ export default function ChatPage() {
     router.push('/')
   }
 
+  const handleCloseTour = () => {
+    setShowTour(false)
+    if (profile) {
+      localStorage.setItem(`tour_completed_${profile.id}`, 'true')
+    }
+  }
+
+  const handleStartTour = () => {
+    setShowTour(true)
+  }
+
   const handleSelectContact = (contactId: string) => {
     setSelectedContactId(contactId)
     setMobileView('chat')
@@ -353,6 +373,17 @@ export default function ChatPage() {
               </svg>
             </button>
           )}
+
+          {/* Tour button */}
+          <button
+            onClick={handleStartTour}
+            className="hidden md:flex p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+            title="Take a tour"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
 
           {/* Desktop navigation buttons */}
           <Link
@@ -461,7 +492,17 @@ export default function ChatPage() {
       </div>
 
       {/* Mobile Navigation */}
-      <MobileNavigation isParent={profile?.role === 'parent'} />
+      <MobileNavigation 
+        isParent={profile?.role === 'parent'}
+        onStartTour={handleStartTour}
+      />
+
+      {/* App Tour */}
+      <AppTour 
+        isOpen={showTour} 
+        onClose={handleCloseTour}
+        userRole={profile?.role}
+      />
     </div>
   )
 }

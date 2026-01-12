@@ -21,6 +21,7 @@ export default function SettingsPage() {
   const [birthDate, setBirthDate] = useState('')
   const [status, setStatus] = useState<'online' | 'dnd' | 'away' | 'invisible'>('online')
   const [accentColor, setAccentColor] = useState<'blue' | 'purple' | 'pink' | 'red' | 'orange' | 'yellow' | 'green' | 'teal'>('blue')
+  const [uploading, setUploading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
   const { theme, setTheme } = useTheme()
@@ -110,6 +111,53 @@ export default function SettingsPage() {
     }
   }
 
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !profile) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload-profile-picture', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const { url } = await response.json()
+      
+      // Update local profile state
+      setProfile({
+        ...profile,
+        profile_picture_url: url,
+      })
+
+      alert('Profile picture updated successfully!')
+    } catch (error) {
+      console.error('Error uploading profile picture:', error)
+      alert('Failed to upload profile picture')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -147,17 +195,43 @@ export default function SettingsPage() {
               <div className="flex md:flex-col items-center md:text-center space-x-4 md:space-x-0 md:space-y-4">
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                    <span className="text-3xl md:text-5xl font-bold text-white">
-                      {profile?.username?.[0]?.toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                  <button className="absolute bottom-0 right-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 md:border-4 border-card hover:bg-primary/90 transition-colors">
-                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </button>
+                  {profile?.profile_picture_url ? (
+                    <img
+                      src={profile.profile_picture_url}
+                      alt={profile.username}
+                      className="w-20 h-20 md:w-32 md:h-32 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                      <span className="text-3xl md:text-5xl font-bold text-white">
+                        {profile?.username?.[0]?.toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                  )}
+                  <label 
+                    htmlFor="profile-picture-upload"
+                    className="absolute bottom-0 right-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 md:border-4 border-card hover:bg-primary/90 transition-colors cursor-pointer"
+                  >
+                    {uploading ? (
+                      <svg className="w-4 h-4 md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    )}
+                  </label>
+                  <input
+                    id="profile-picture-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfilePictureUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
                 </div>
 
                 {/* Username & Info */}
@@ -185,7 +259,7 @@ export default function SettingsPage() {
                   {/* About - Hidden on mobile */}
                   <div className="hidden md:block w-full pt-4 border-t border-border">
                     <p className="text-xs font-semibold text-muted-foreground mb-2">ABOUT</p>
-                    <p className="text-sm text-muted-foreground">No bio available</p>
+                    <p className="text-sm text-muted-foreground">{profile?.bio || 'No bio available'}</p>
                   </div>
                 </div>
               </div>

@@ -33,16 +33,30 @@ export function Sidebar({ contacts, selectedContactId, onSelectContact }: Sideba
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    {/* Subtle glow effect when new messages */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      (contact.unreadCount || 0) > 0
-                        ? 'bg-primary/20 ring-2 ring-primary/30 ring-offset-2 ring-offset-background' 
-                        : 'bg-primary/10'
-                    }`}>
-                      <span className="text-primary font-semibold">
-                        {contact.username[0].toUpperCase()}
-                      </span>
-                    </div>
+                    {/* Profile picture or initials */}
+                    {contact.profile_picture_url ? (
+                      <div className={`w-10 h-10 rounded-full overflow-hidden transition-all duration-300 ${
+                        (contact.unreadCount || 0) > 0
+                          ? 'ring-2 ring-primary/30 ring-offset-2 ring-offset-background' 
+                          : ''
+                      }`}>
+                        <img
+                          src={contact.profile_picture_url}
+                          alt={contact.username}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        (contact.unreadCount || 0) > 0
+                          ? 'bg-primary/20 ring-2 ring-primary/30 ring-offset-2 ring-offset-background' 
+                          : 'bg-primary/10'
+                      }`}>
+                        <span className="text-primary font-semibold">
+                          {contact.username[0].toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     
                     {/* Tiny dot with count - barely there */}
                     {(contact.unreadCount || 0) > 0 && (

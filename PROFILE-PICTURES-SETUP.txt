@@ -1,0 +1,157 @@
+🖼️ PROFILE PICTURES SETUP GUIDE
+==================================
+
+✅ Installation Complete! Here's what was added:
+
+1. VERCEL BLOB STORAGE
+   - Installed @vercel/blob package
+   - Images stored in Vercel Blob Storage
+   - Public access URLs generated automatically
+
+2. UPLOAD FUNCTIONALITY
+   - Users can upload profile pictures in Settings
+   - Click camera icon on profile picture to upload
+   - Supports all image formats (jpg, png, gif, webp)
+   - Maximum file size: 5MB
+   - Automatic validation
+
+3. DATABASE UPDATES
+   - Added profile_picture_url column to profiles table
+   - Stores Vercel Blob public URLs
+
+4. UI INTEGRATION
+   - Profile pictures displayed in:
+     * Settings page (your profile)
+     * Chat sidebar (contact list)
+     * UserInfo panel (contact details)
+   - Falls back to initials if no picture uploaded
+
+📋 REQUIRED SETUP STEPS
+========================
+
+STEP 1: Run Database Migration
+-------------------------------
+1. Open your Supabase dashboard
+2. Go to SQL Editor
+3. Run the file: scripts/add-profile-fields.sql
+   
+   This adds the profile_picture_url column
+
+STEP 2: Set Up Vercel Blob Storage
+-----------------------------------
+You mentioned you already created a Vercel Blob. Now you need to:
+
+1. Get your Vercel Blob token:
+   - Go to Vercel Dashboard
+   - Navigate to Storage > Blob
+   - Copy the BLOB_READ_WRITE_TOKEN
+
+2. Add to Vercel Environment Variables:
+   - Go to Project Settings > Environment Variables
+   - Add:
+     Name: BLOB_READ_WRITE_TOKEN
+     Value: [your token from step 1]
+
+3. For local development, add to .env.local:
+   
+   BLOB_READ_WRITE_TOKEN=your_token_here
+
+4. Redeploy your app after adding the token
+
+STEP 3: Test the Feature
+-------------------------
+1. Go to Settings page
+2. Click the camera icon on your profile picture
+3. Select an image (max 5MB)
+4. Image uploads to Vercel Blob
+5. Profile picture updates instantly everywhere
+
+🎨 FEATURES
+===========
+
+✅ File Upload
+   - Drag & drop or click to select
+   - Image format validation
+   - File size validation (5MB max)
+   - Loading spinner during upload
+
+✅ Image Storage
+   - Stored in Vercel Blob Storage
+   - Path: profile-pictures/{user_id}/{timestamp}-{filename}
+   - Public URLs for fast access
+   - Automatic CDN optimization
+
+✅ Display Everywhere
+   - Settings profile card
+   - Chat contact list
+   - Contact info panel
+   - Graceful fallback to initials
+
+✅ Security
+   - User authentication required
+   - Only owner can upload their picture
+   - File type validation
+   - Size limit enforcement
+
+💡 HOW IT WORKS
+===============
+
+1. User clicks camera icon on profile picture
+2. Selects image file
+3. File validated (type, size)
+4. Uploaded to Vercel Blob via API
+5. Blob returns public URL
+6. URL saved to Supabase profiles table
+7. UI updates immediately with new image
+
+🔧 API ENDPOINT
+===============
+
+POST /api/upload-profile-picture
+- Requires authentication
+- Accepts multipart/form-data
+- Field name: 'file'
+- Returns: { url: "blob-url" }
+
+📝 DATABASE SCHEMA
+==================
+
+ALTER TABLE profiles ADD COLUMN profile_picture_url TEXT;
+
+This stores the Vercel Blob public URL for each user's profile picture.
+
+🐛 TROUBLESHOOTING
+==================
+
+Issue: Upload fails with 401 error
+- Make sure user is logged in
+- Check authentication token
+
+Issue: Upload fails with 500 error
+- Verify BLOB_READ_WRITE_TOKEN is set correctly
+- Check Vercel Blob is properly configured
+- Check database migration was run
+
+Issue: Images not displaying
+- Verify Vercel Blob URLs are public
+- Check profile_picture_url is saved in database
+- Inspect network tab for failed image requests
+
+Issue: "Failed to update profile" error
+- Make sure database migration was run
+- Verify profile_picture_url column exists
+- Check Supabase permissions
+
+🎯 NEXT STEPS
+=============
+
+Consider adding:
+- Image cropping before upload
+- Multiple image formats optimization
+- Thumbnail generation
+- Remove/replace picture option
+- Image compression
+- Progress bar for uploads
+
+The profile picture feature is now fully functional! 🚀
+

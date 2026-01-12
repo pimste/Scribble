@@ -21,6 +21,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [mobileView, setMobileView] = useState<MobileView>('contacts')
+  const [showUserInfo, setShowUserInfo] = useState(true)
   const router = useRouter()
   const supabase = createClient()
 
@@ -68,7 +69,7 @@ export default function ChatPage() {
         if (contactIds.length > 0) {
           const { data: profilesData } = await supabase
             .from('profiles')
-            .select('id, username, role, restricted')
+            .select('id, username, display_name, bio, role, restricted, accent_color, profile_picture_url')
             .in('id', contactIds)
 
           if (profilesData) {
@@ -340,6 +341,19 @@ export default function ChatPage() {
             </button>
           )}
 
+          {/* Desktop info toggle button when chat is selected */}
+          {selectedContact && (
+            <button
+              onClick={() => setShowUserInfo(!showUserInfo)}
+              className="hidden lg:flex p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+              title={showUserInfo ? "Hide contact info" : "Show contact info"}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          )}
+
           {/* Desktop navigation buttons */}
           <Link
             href="/invite"
@@ -409,7 +423,11 @@ export default function ChatPage() {
         `}>
           {selectedContactId ? (
             <>
-              <MessageList messages={messages} currentUserId={profile?.id || ''} />
+              <MessageList 
+                messages={messages} 
+                currentUserId={profile?.id || ''} 
+                userAccentColor={profile?.accent_color || 'blue'}
+              />
               <MessageInput
                 onSendMessage={handleSendMessage}
                 disabled={!profile}
@@ -428,13 +446,18 @@ export default function ChatPage() {
         </div>
 
         {/* Right Sidebar - User Info (Desktop only on large screens, Tablet: hidden, Mobile: view-based) */}
-        <div className={`
-          w-full md:w-0 lg:w-80 xl:w-96 flex-shrink-0 overflow-hidden
-          ${mobileView === 'info' ? 'block md:hidden' : 'hidden'}
-          lg:block
-        `}>
-          <UserInfo contact={selectedContact} />
-        </div>
+        {showUserInfo && (
+          <div className={`
+            w-full md:w-0 lg:w-80 xl:w-96 flex-shrink-0 overflow-hidden
+            ${mobileView === 'info' ? 'block md:hidden' : 'hidden'}
+            lg:block
+          `}>
+            <UserInfo 
+              contact={selectedContact} 
+              onClose={() => setShowUserInfo(false)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Mobile Navigation */}

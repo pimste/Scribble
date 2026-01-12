@@ -6,9 +6,21 @@ import { Message } from '@/types'
 interface MessageListProps {
   messages: Message[]
   currentUserId: string
+  userAccentColor?: 'blue' | 'purple' | 'pink' | 'red' | 'orange' | 'yellow' | 'green' | 'teal'
 }
 
-export function MessageList({ messages, currentUserId }: MessageListProps) {
+const accentColorClasses = {
+  blue: 'bg-blue-500 text-white',
+  purple: 'bg-purple-500 text-white',
+  pink: 'bg-pink-500 text-white',
+  red: 'bg-red-500 text-white',
+  orange: 'bg-orange-500 text-white',
+  yellow: 'bg-yellow-500 text-white',
+  green: 'bg-green-500 text-white',
+  teal: 'bg-teal-500 text-white',
+}
+
+export function MessageList({ messages, currentUserId, userAccentColor = 'blue' }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -42,7 +54,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
                   isGif ? 'p-2' : 'px-4 py-2'
                 } ${
                   isOwn
-                    ? 'bg-primary text-primary-foreground'
+                    ? `${accentColorClasses[userAccentColor]}`
                     : 'bg-muted text-foreground'
                 } ${isSending ? 'opacity-70' : 'opacity-100'} transition-opacity`}
               >
@@ -66,7 +78,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
                 <div className={`flex items-center gap-1 text-xs mt-1 ${
                     isGif ? 'px-2' : ''
                   } ${
-                    isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                    isOwn ? 'text-white/70' : 'text-muted-foreground'
                   }`}>
                   <span>{formatTime(message.created_at)}</span>
                   {isOwn && (

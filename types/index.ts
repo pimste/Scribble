@@ -14,6 +14,7 @@ export interface Profile {
   birth_date?: string;
   status?: 'online' | 'dnd' | 'away' | 'invisible';
   accent_color?: 'blue' | 'purple' | 'pink' | 'red' | 'orange' | 'yellow' | 'green' | 'teal';
+  profile_picture_url?: string;
 }
 
 export interface Message {
@@ -36,8 +37,12 @@ export interface Contact {
 export interface ChatContact {
   id: string;
   username: string;
+  display_name?: string;
+  bio?: string;
   role: UserRole;
   restricted: boolean;
+  accent_color?: 'blue' | 'purple' | 'pink' | 'red' | 'orange' | 'yellow' | 'green' | 'teal';
+  profile_picture_url?: string;
   unreadCount?: number;
 }
 

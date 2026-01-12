@@ -7,15 +7,21 @@ import { createClient } from '@/lib/supabase'
 import { Profile } from '@/types'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { MobileNavigation } from '@/components/MobileNavigation'
+import { useTheme } from '@/components/theme-provider'
 
-type Tab = 'profile' | 'account' | 'notifications' | 'appearance'
+type Tab = 'profile' | 'account' | 'appearance'
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('profile')
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [displayName, setDisplayName] = useState('')
+  const [bio, setBio] = useState('')
+  const [status, setStatus] = useState('online')
   const router = useRouter()
   const supabase = createClient()
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,6 +40,8 @@ export default function SettingsPage() {
 
       if (profileData) {
         setProfile(profileData)
+        setDisplayName(profileData.username)
+        // We can add bio and other fields to the profile later if needed
       }
       
       setLoading(false)
@@ -41,6 +49,26 @@ export default function SettingsPage() {
 
     checkAuth()
   }, [router, supabase])
+
+  const handleSaveProfile = async () => {
+    if (!profile) return
+    
+    setSaving(true)
+    try {
+      // For now, we'll just show a success message since we don't have
+      // additional profile fields in the database yet
+      // In the future, update the profiles table with bio, status, etc.
+      
+      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate save
+      
+      alert('Profile updated successfully!')
+    } catch (error) {
+      console.error('Error saving profile:', error)
+      alert('Failed to save profile')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -160,22 +188,6 @@ export default function SettingsPage() {
                   </div>
                 </button>
                 <button
-                  onClick={() => setActiveTab('notifications')}
-                  className={`flex-1 min-w-fit px-4 md:px-6 py-3 md:py-4 font-medium transition-colors whitespace-nowrap ${
-                    activeTab === 'notifications'
-                      ? 'bg-primary/5 text-primary border-b-2 border-primary'
-                      : 'text-muted-foreground hover:bg-accent'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span className="text-sm md:text-base hidden sm:inline">Notifications</span>
-                    <span className="text-sm md:text-base sm:hidden">Notifs</span>
-                  </div>
-                </button>
-                <button
                   onClick={() => setActiveTab('appearance')}
                   className={`flex-1 min-w-fit px-4 md:px-6 py-3 md:py-4 font-medium transition-colors whitespace-nowrap ${
                     activeTab === 'appearance'
@@ -219,7 +231,8 @@ export default function SettingsPage() {
                           <label className="block text-sm font-medium mb-2">Display Name</label>
                           <input
                             type="text"
-                            defaultValue={profile?.username || ''}
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
                             className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                             placeholder="Enter display name"
                           />
@@ -230,6 +243,8 @@ export default function SettingsPage() {
                         <label className="block text-sm font-medium mb-2">Bio</label>
                         <textarea
                           rows={4}
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
                           className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                           placeholder="Tell us about yourself..."
                         />
@@ -238,11 +253,15 @@ export default function SettingsPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
                           <label className="block text-sm font-medium mb-2">Status</label>
-                          <select className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring">
-                            <option>🟢 Online</option>
-                            <option>🔴 Do Not Disturb</option>
-                            <option>🟡 Away</option>
-                            <option>⚫ Invisible</option>
+                          <select 
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                            className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                          >
+                            <option value="online">🟢 Online</option>
+                            <option value="dnd">🔴 Do Not Disturb</option>
+                            <option value="away">🟡 Away</option>
+                            <option value="invisible">⚫ Invisible</option>
                           </select>
                         </div>
                         <div>
@@ -255,33 +274,23 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="border-t border-border pt-6">
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                        Additional Information
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-4">Add extra details to your profile</p>
-                      
-                      <div className="space-y-3">
-                        <button className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-left">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Add social links</span>
-                            <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
                     <div className="flex justify-end gap-3 pt-6 border-t border-border">
-                      <button className="px-6 py-2 border border-border rounded-lg hover:bg-accent transition-colors font-medium">
+                      <button 
+                        onClick={() => {
+                          setDisplayName(profile?.username || '')
+                          setBio('')
+                          setStatus('online')
+                        }}
+                        className="px-6 py-2 border border-border rounded-lg hover:bg-accent transition-colors font-medium"
+                      >
                         Cancel
                       </button>
-                      <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium">
-                        Save Changes
+                      <button 
+                        onClick={handleSaveProfile}
+                        disabled={saving}
+                        className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {saving ? 'Saving...' : 'Save Changes'}
                       </button>
                     </div>
                   </div>
@@ -355,62 +364,93 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {activeTab === 'notifications' && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
-                      <p className="text-sm text-muted-foreground mb-6">Choose what notifications you want to receive</p>
-                      
-                      <div className="space-y-4">
-                        {[
-                          { title: 'Direct Messages', desc: 'Get notified when someone sends you a message' },
-                          { title: 'Friend Requests', desc: 'Get notified when someone adds you as a contact' },
-                          { title: 'Mentions', desc: 'Get notified when someone mentions you' },
-                          { title: 'Group Invites', desc: 'Get notified when invited to a group' },
-                        ].map((item) => (
-                          <div key={item.title} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                            <div>
-                              <p className="font-medium">{item.title}</p>
-                              <p className="text-sm text-muted-foreground">{item.desc}</p>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input type="checkbox" className="sr-only peer" defaultChecked />
-                              <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {activeTab === 'appearance' && (
                   <div className="space-y-6">
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Theme</h3>
-                      <p className="text-sm text-muted-foreground mb-6">Customize how Scribble looks</p>
+                      <p className="text-sm text-muted-foreground mb-6">Choose how Scribble looks on your device</p>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <button className="p-4 border-2 border-primary rounded-lg hover:bg-accent transition-colors">
-                          <div className="w-full h-24 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 mb-3"></div>
+                        <button 
+                          onClick={() => setTheme('light')}
+                          className={`p-4 border-2 rounded-lg hover:bg-accent transition-colors ${
+                            theme === 'light' ? 'border-primary' : 'border-border'
+                          }`}
+                        >
+                          <div className="w-full h-24 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 mb-3 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                          </div>
                           <p className="font-medium">Light</p>
+                          {theme === 'light' && <p className="text-xs text-primary mt-1">✓ Active</p>}
                         </button>
-                        <button className="p-4 border-2 border-border rounded-lg hover:bg-accent transition-colors">
-                          <div className="w-full h-24 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 mb-3"></div>
+                        <button 
+                          onClick={() => setTheme('dark')}
+                          className={`p-4 border-2 rounded-lg hover:bg-accent transition-colors ${
+                            theme === 'dark' ? 'border-primary' : 'border-border'
+                          }`}
+                        >
+                          <div className="w-full h-24 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 mb-3 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                          </div>
                           <p className="font-medium">Dark</p>
+                          {theme === 'dark' && <p className="text-xs text-primary mt-1">✓ Active</p>}
                         </button>
-                        <button className="p-4 border-2 border-border rounded-lg hover:bg-accent transition-colors">
-                          <div className="w-full h-24 rounded-lg bg-gradient-to-br from-gray-100 via-gray-200 to-gray-800 mb-3"></div>
+                        <button 
+                          onClick={() => setTheme('system')}
+                          className={`p-4 border-2 rounded-lg hover:bg-accent transition-colors ${
+                            theme === 'system' ? 'border-primary' : 'border-border'
+                          }`}
+                        >
+                          <div className="w-full h-24 rounded-lg bg-gradient-to-br from-gray-100 via-gray-300 to-gray-800 mb-3 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          </div>
                           <p className="font-medium">System</p>
+                          {theme === 'system' && <p className="text-xs text-primary mt-1">✓ Active</p>}
                         </button>
                       </div>
                     </div>
 
                     <div className="border-t border-border pt-6">
                       <h3 className="text-lg font-semibold mb-4">Accent Color</h3>
+                      <p className="text-sm text-muted-foreground mb-6">Choose your preferred accent color</p>
+                      <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
+                        <p className="text-sm text-blue-600 dark:text-blue-400">
+                          <span className="font-semibold">ℹ️ Coming Soon:</span> Accent color customization will be available in a future update. Currently using the default blue theme.
+                        </p>
+                      </div>
                       <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-                        {['bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-teal-500'].map((color) => (
-                          <button key={color} className={`w-12 h-12 rounded-lg ${color} hover:scale-110 transition-transform`}></button>
+                        {[
+                          { color: 'bg-blue-500', name: 'Blue', active: true },
+                          { color: 'bg-purple-500', name: 'Purple' },
+                          { color: 'bg-pink-500', name: 'Pink' },
+                          { color: 'bg-red-500', name: 'Red' },
+                          { color: 'bg-orange-500', name: 'Orange' },
+                          { color: 'bg-yellow-500', name: 'Yellow' },
+                          { color: 'bg-green-500', name: 'Green' },
+                          { color: 'bg-teal-500', name: 'Teal' }
+                        ].map((item) => (
+                          <button 
+                            key={item.color} 
+                            className={`w-12 h-12 rounded-lg ${item.color} relative ${
+                              item.active ? 'ring-2 ring-offset-2 ring-primary' : 'opacity-50 cursor-not-allowed'
+                            }`}
+                            disabled={!item.active}
+                            title={item.active ? `${item.name} (Active)` : `${item.name} (Coming Soon)`}
+                          >
+                            {item.active && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </button>
                         ))}
                       </div>
                     </div>

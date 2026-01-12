@@ -18,7 +18,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
-  const [status, setStatus] = useState('online')
+  const [birthDate, setBirthDate] = useState('')
+  const [status, setStatus] = useState<'online' | 'dnd' | 'away' | 'invisible'>('online')
+  const [accentColor, setAccentColor] = useState<'blue' | 'purple' | 'pink' | 'red' | 'orange' | 'yellow' | 'green' | 'teal'>('blue')
   const router = useRouter()
   const supabase = createClient()
   const { theme, setTheme } = useTheme()
@@ -40,8 +42,11 @@ export default function SettingsPage() {
 
       if (profileData) {
         setProfile(profileData)
-        setDisplayName(profileData.username)
-        // We can add bio and other fields to the profile later if needed
+        setDisplayName(profileData.display_name || profileData.username)
+        setBio(profileData.bio || '')
+        setBirthDate(profileData.birth_date || '')
+        setStatus(profileData.status || 'online')
+        setAccentColor(profileData.accent_color || 'blue')
       }
       
       setLoading(false)
@@ -55,18 +60,53 @@ export default function SettingsPage() {
     
     setSaving(true)
     try {
-      // For now, we'll just show a success message since we don't have
-      // additional profile fields in the database yet
-      // In the future, update the profiles table with bio, status, etc.
-      
-      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate save
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: displayName,
+          bio: bio,
+          birth_date: birthDate || null,
+          status: status,
+          accent_color: accentColor,
+        })
+        .eq('id', profile.id)
+
+      if (error) {
+        throw error
+      }
+
+      // Update local profile state
+      setProfile({
+        ...profile,
+        display_name: displayName,
+        bio: bio,
+        birth_date: birthDate,
+        status: status,
+        accent_color: accentColor,
+      })
       
       alert('Profile updated successfully!')
     } catch (error) {
       console.error('Error saving profile:', error)
-      alert('Failed to save profile')
+      alert('Failed to save profile. Please make sure you have run the database migration.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleAccentColorChange = async (color: typeof accentColor) => {
+    setAccentColor(color)
+    
+    // Save immediately to database
+    if (profile) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ accent_color: color })
+          .eq('id', profile.id)
+      } catch (error) {
+        console.error('Error saving accent color:', error)
+      }
     }
   }
 
@@ -268,6 +308,8 @@ export default function SettingsPage() {
                           <label className="block text-sm font-medium mb-2">Birth Date</label>
                           <input
                             type="date"
+                            value={birthDate}
+                            onChange={(e) => setBirthDate(e.target.value)}
                             className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                           />
                         </div>
@@ -277,9 +319,10 @@ export default function SettingsPage() {
                     <div className="flex justify-end gap-3 pt-6 border-t border-border">
                       <button 
                         onClick={() => {
-                          setDisplayName(profile?.username || '')
-                          setBio('')
-                          setStatus('online')
+                          setDisplayName(profile?.display_name || profile?.username || '')
+                          setBio(profile?.bio || '')
+                          setBirthDate(profile?.birth_date || '')
+                          setStatus(profile?.status || 'online')
                         }}
                         className="px-6 py-2 border border-border rounded-lg hover:bg-accent transition-colors font-medium"
                       >
@@ -418,34 +461,29 @@ export default function SettingsPage() {
 
                     <div className="border-t border-border pt-6">
                       <h3 className="text-lg font-semibold mb-4">Accent Color</h3>
-                      <p className="text-sm text-muted-foreground mb-6">Choose your preferred accent color</p>
-                      <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
-                        <p className="text-sm text-blue-600 dark:text-blue-400">
-                          <span className="font-semibold">ℹ️ Coming Soon:</span> Accent color customization will be available in a future update. Currently using the default blue theme.
-                        </p>
-                      </div>
+                      <p className="text-sm text-muted-foreground mb-6">Choose your preferred accent color (changes apply instantly)</p>
                       <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
                         {[
-                          { color: 'bg-blue-500', name: 'Blue', active: true },
-                          { color: 'bg-purple-500', name: 'Purple' },
-                          { color: 'bg-pink-500', name: 'Pink' },
-                          { color: 'bg-red-500', name: 'Red' },
-                          { color: 'bg-orange-500', name: 'Orange' },
-                          { color: 'bg-yellow-500', name: 'Yellow' },
-                          { color: 'bg-green-500', name: 'Green' },
-                          { color: 'bg-teal-500', name: 'Teal' }
+                          { value: 'blue' as const, color: 'bg-blue-500', name: 'Blue' },
+                          { value: 'purple' as const, color: 'bg-purple-500', name: 'Purple' },
+                          { value: 'pink' as const, color: 'bg-pink-500', name: 'Pink' },
+                          { value: 'red' as const, color: 'bg-red-500', name: 'Red' },
+                          { value: 'orange' as const, color: 'bg-orange-500', name: 'Orange' },
+                          { value: 'yellow' as const, color: 'bg-yellow-500', name: 'Yellow' },
+                          { value: 'green' as const, color: 'bg-green-500', name: 'Green' },
+                          { value: 'teal' as const, color: 'bg-teal-500', name: 'Teal' }
                         ].map((item) => (
                           <button 
-                            key={item.color} 
-                            className={`w-12 h-12 rounded-lg ${item.color} relative ${
-                              item.active ? 'ring-2 ring-offset-2 ring-primary' : 'opacity-50 cursor-not-allowed'
+                            key={item.value} 
+                            onClick={() => handleAccentColorChange(item.value)}
+                            className={`w-12 h-12 rounded-lg ${item.color} relative hover:scale-110 transition-transform ${
+                              accentColor === item.value ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground' : ''
                             }`}
-                            disabled={!item.active}
-                            title={item.active ? `${item.name} (Active)` : `${item.name} (Coming Soon)`}
+                            title={item.name}
                           >
-                            {item.active && (
+                            {accentColor === item.value && (
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                               </div>
@@ -453,6 +491,9 @@ export default function SettingsPage() {
                           </button>
                         ))}
                       </div>
+                      <p className="text-xs text-muted-foreground mt-4">
+                        💡 Your accent color preference is saved automatically
+                      </p>
                     </div>
                   </div>
                 )}

@@ -9,6 +9,11 @@ export interface Profile {
   invite_code: string;
   restricted: boolean;
   created_at: string;
+  display_name?: string;
+  bio?: string;
+  birth_date?: string;
+  status?: 'online' | 'dnd' | 'away' | 'invisible';
+  accent_color?: 'blue' | 'purple' | 'pink' | 'red' | 'orange' | 'yellow' | 'green' | 'teal';
 }
 
 export interface Message {

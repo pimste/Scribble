@@ -41,6 +41,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
   const attachBubblesRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [attachBubblePosition, setAttachBubblePosition] = useState<{ top: number; left: number } | null>(null)
+  const [gifPickerPosition, setGifPickerPosition] = useState<{ top: number; left: number } | null>(null)
 
   useEffect(() => {
     if (showAttachMenu && attachButtonRef.current) {
@@ -54,6 +55,21 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
       setAttachBubblePosition(null)
     }
   }, [showAttachMenu])
+
+  useEffect(() => {
+    if (showGifPicker && inputContainerRef.current && typeof window !== 'undefined') {
+      const rect = inputContainerRef.current.getBoundingClientRect()
+      const pickerHeight = Math.min(384, window.innerHeight * 0.6)
+      const pickerWidth = Math.min(320, window.innerWidth - 32)
+      const top = rect.top - pickerHeight - 8
+      setGifPickerPosition({
+        top: Math.max(8, top),
+        left: Math.max(8, Math.min(rect.left + rect.width / 2 - pickerWidth / 2, window.innerWidth - pickerWidth - 8))
+      })
+    } else {
+      setGifPickerPosition(null)
+    }
+  }, [showGifPicker])
 
   // Close pickers when clicking outside
   useEffect(() => {
@@ -263,49 +279,55 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
             )}
           </div>
 
-          {/* GIF Picker (opens from attach menu) */}
-          <div className="relative flex-shrink-0" ref={gifPickerRef}>
-            {showGifPicker && (
-              <div className="absolute bottom-full mb-2 left-0 z-50 w-80 h-96 max-w-[min(320px,calc(100vw-2rem))] max-h-[min(384px,60vh)] bg-card border border-border rounded-lg shadow-lg overflow-hidden flex flex-col">
-                <div className="p-3 border-b border-border">
-                  <input
-                    type="text"
-                    value={gifSearch}
-                    onChange={(e) => setGifSearch(e.target.value)}
-                    placeholder="Search GIFs..."
-                    className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2 auto-rows-max">
-                  {loadingGifs ? (
-                    <div className="col-span-2 flex items-center justify-center h-32">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : gifs.length === 0 ? (
-                    <div className="col-span-2 text-center text-muted-foreground py-8">
-                      No GIFs found
-                    </div>
-                  ) : (
-                    gifs.map((gif) => (
-                      <button
-                        key={gif.id}
-                        type="button"
-                        onClick={() => handleGifSelect(gif)}
-                        className="relative overflow-hidden rounded-lg hover:ring-2 hover:ring-primary transition-all bg-muted"
-                      >
-                        <img
-                          src={gif.preview}
-                          alt={gif.title}
-                          className="w-full h-auto"
-                          loading="lazy"
-                        />
-                      </button>
-                    ))
-                  )}
-                </div>
+          {/* GIF Picker (opens from attach menu, rendered in portal to avoid overflow clipping) */}
+          {showGifPicker && gifPickerPosition && typeof document !== 'undefined' && createPortal(
+            <div
+              ref={gifPickerRef}
+              className="fixed z-[100] w-80 h-96 max-w-[min(320px,calc(100vw-2rem))] max-h-[min(384px,60vh)] bg-card border border-border rounded-lg shadow-xl overflow-hidden flex flex-col"
+              style={{
+                top: gifPickerPosition.top,
+                left: gifPickerPosition.left
+              }}
+            >
+              <div className="p-3 border-b border-border">
+                <input
+                  type="text"
+                  value={gifSearch}
+                  onChange={(e) => setGifSearch(e.target.value)}
+                  placeholder="Search GIFs..."
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                />
               </div>
-            )}
-          </div>
+              <div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2 auto-rows-max">
+                {loadingGifs ? (
+                  <div className="col-span-2 flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : gifs.length === 0 ? (
+                  <div className="col-span-2 text-center text-muted-foreground py-8">
+                    No GIFs found
+                  </div>
+                ) : (
+                  gifs.map((gif) => (
+                    <button
+                      key={gif.id}
+                      type="button"
+                      onClick={() => handleGifSelect(gif)}
+                      className="relative overflow-hidden rounded-lg hover:ring-2 hover:ring-primary transition-all bg-muted"
+                    >
+                      <img
+                        src={gif.preview}
+                        alt={gif.title}
+                        className="w-full h-auto"
+                        loading="lazy"
+                      />
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>,
+            document.body
+          )}
 
           {/* Message Input */}
           <input

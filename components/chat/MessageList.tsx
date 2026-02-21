@@ -78,7 +78,7 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
                 </span>
               )}
               <div
-                className={`rounded-2xl ${
+                className={`rounded-2xl overflow-hidden ${
                   hasMedia ? 'p-2' : 'px-4 py-2'
                 } ${
                   isOwn
@@ -88,11 +88,11 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
               >
                 {(isGif || isImage) ? (
                   <div className="space-y-1">
-                    <div className="relative rounded-lg overflow-hidden min-w-0 max-w-[min(100%,20rem)]">
+                    <div className="relative rounded-lg overflow-hidden min-w-0 w-full max-w-[min(100%,20rem)]">
                       <img
                         src={message.media_url}
                         alt={message.content}
-                        className="w-full h-auto max-h-[50vh] sm:max-h-64 object-contain"
+                        className="w-full max-w-full h-auto max-h-[50vh] sm:max-h-64 object-contain"
                         loading="lazy"
                       />
                     </div>
@@ -146,7 +146,7 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
   }
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 min-h-0 min-w-0 overflow-x-hidden overflow-y-auto p-4 space-y-4">
       {messages.length === 0 ? (
         <div className="h-full flex items-center justify-center text-muted-foreground">
           {isDiaryView ? 'No notes yet. Write something to yourself or save messages from chats!' : 'No messages yet. Start the conversation!'}

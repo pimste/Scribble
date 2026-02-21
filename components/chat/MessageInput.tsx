@@ -129,17 +129,17 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
   }
 
   return (
-    <div className="p-4 border-t border-border bg-card">
+    <div className="p-4 border-t border-border bg-card min-w-0 overflow-hidden">
       {isRestricted && (
         <div className="mb-3 p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
           Your account has been restricted by your parent. You cannot send messages.
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="flex gap-2 items-center">
+      <form onSubmit={handleSubmit} className="relative min-w-0">
+        <div className="flex gap-2 items-center min-w-0">
           {/* Emoji Picker Button */}
-          <div className="relative" ref={emojiPickerRef}>
+          <div className="relative flex-shrink-0" ref={emojiPickerRef}>
             <button
               type="button"
               onClick={() => {
@@ -173,7 +173,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
             type="button"
             onClick={() => imageInputRef.current?.click()}
             disabled={disabled || isRestricted || uploadingImage}
-            className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 flex-shrink-0 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Send image"
           >
             {uploadingImage ? (
@@ -186,7 +186,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
           </button>
 
           {/* GIF Picker Button */}
-          <div className="relative" ref={gifPickerRef}>
+          <div className="relative flex-shrink-0" ref={gifPickerRef}>
             <button
               type="button"
               onClick={() => {
@@ -255,7 +255,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
           <button
             type="submit"
             disabled={disabled || isRestricted || !message.trim()}
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="flex-shrink-0 px-6 py-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             Send
           </button>

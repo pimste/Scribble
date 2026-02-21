@@ -434,7 +434,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Desktop/Tablet Header */}
       <div className="h-14 md:h-16 border-b border-border bg-card px-3 md:px-6 flex items-center justify-between">
         <div className="flex items-center gap-2 md:gap-4">
@@ -548,7 +548,7 @@ export default function ChatPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="flex-1 flex min-w-0 overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         {/* Left Sidebar - Contacts (Desktop: always visible, Tablet: collapsible, Mobile: view-based) */}
         <div className={`
           w-full md:w-80 lg:w-96 flex-shrink-0
@@ -565,7 +565,7 @@ export default function ChatPage() {
 
         {/* Middle Panel - Chat Messages */}
         <div className={`
-          flex-1 flex flex-col min-h-0 bg-background
+          flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden bg-background
           ${mobileView === 'chat' ? 'flex' : 'hidden'}
           md:flex
         `}>

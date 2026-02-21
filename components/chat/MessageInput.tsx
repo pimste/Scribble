@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import type { EmojiClickData } from 'emoji-picker-react'
 
@@ -36,7 +37,23 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
   const emojiPickerRef = useRef<HTMLDivElement>(null)
   const gifPickerRef = useRef<HTMLDivElement>(null)
   const attachMenuRef = useRef<HTMLDivElement>(null)
+  const attachButtonRef = useRef<HTMLButtonElement>(null)
+  const attachBubblesRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const [attachBubblePosition, setAttachBubblePosition] = useState<{ top: number; left: number } | null>(null)
+
+  useEffect(() => {
+    if (showAttachMenu && attachButtonRef.current) {
+      const rect = attachButtonRef.current.getBoundingClientRect()
+      const bubbleWidth = 48 + 12 + 48
+      setAttachBubblePosition({
+        top: rect.top - 56 - 12,
+        left: rect.left + rect.width / 2 - bubbleWidth / 2
+      })
+    } else {
+      setAttachBubblePosition(null)
+    }
+  }, [showAttachMenu])
 
   // Close pickers when clicking outside
   useEffect(() => {
@@ -47,7 +64,10 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
       if (gifPickerRef.current && !gifPickerRef.current.contains(event.target as Node)) {
         setShowGifPicker(false)
       }
-      if (attachMenuRef.current && !attachMenuRef.current.contains(event.target as Node)) {
+      if (
+        !attachMenuRef.current?.contains(event.target as Node) &&
+        !attachBubblesRef.current?.contains(event.target as Node)
+      ) {
         setShowAttachMenu(false)
       }
     }
@@ -185,6 +205,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
           />
           <div className="relative flex-shrink-0" ref={attachMenuRef}>
             <button
+              ref={attachButtonRef}
               type="button"
               onClick={() => {
                 setShowAttachMenu(!showAttachMenu)
@@ -198,8 +219,15 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </button>
-            {showAttachMenu && (
-              <div className="absolute bottom-full left-0 mb-2 flex flex-col gap-2 items-center z-50">
+            {showAttachMenu && attachBubblePosition && typeof document !== 'undefined' && createPortal(
+              <div
+                ref={attachBubblesRef}
+                className="fixed flex flex-row gap-3 items-center z-[100] p-2 rounded-2xl bg-card border border-border shadow-xl"
+                style={{
+                  top: attachBubblePosition.top,
+                  left: attachBubblePosition.left
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => {
@@ -207,7 +235,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                     setShowGifPicker(true)
                   }}
                   disabled={disabled || isRestricted}
-                  className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 flex items-center justify-center transition-transform font-bold text-sm"
+                  className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 flex items-center justify-center transition-transform font-bold text-sm shrink-0"
                   title="GIF"
                 >
                   GIF
@@ -219,7 +247,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                     imageInputRef.current?.click()
                   }}
                   disabled={disabled || isRestricted || uploadingImage}
-                  className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 flex items-center justify-center transition-transform"
+                  className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 flex items-center justify-center transition-transform shrink-0"
                   title="Image"
                 >
                   {uploadingImage ? (
@@ -230,7 +258,8 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                     </svg>
                   )}
                 </button>
-              </div>
+              </div>,
+              document.body
             )}
           </div>
 

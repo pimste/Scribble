@@ -119,10 +119,12 @@ async function analyzeConversationWithOpenAI(
       const contentType = msg.content_type || 'text'
       
       if (contentType === 'gif' && msg.media_url) {
-        // For GIFs, include a note about the GIF being shared
         return `${idx + 1}. [${sender}]: [Shared a GIF: ${msg.content}]`
       }
-      
+      if (contentType === 'image' && msg.media_url) {
+        return `${idx + 1}. [${sender}]: [Shared an image: ${msg.content}]`
+      }
+
       return `${idx + 1}. [${sender}]: ${msg.content}`
     })
     .join('\n')

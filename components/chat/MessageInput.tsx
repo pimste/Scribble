@@ -8,7 +8,7 @@ import type { EmojiClickData } from 'emoji-picker-react'
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
 interface MessageInputProps {
-  onSendMessage: (content: string, contentType?: 'text' | 'gif', mediaUrl?: string) => void
+  onSendMessage: (content: string, contentType?: 'text' | 'gif' | 'image', mediaUrl?: string) => void
   disabled?: boolean
   isRestricted?: boolean
 }
@@ -29,8 +29,10 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
   const [gifSearch, setGifSearch] = useState('')
   const [gifs, setGifs] = useState<GifResult[]>([])
   const [loadingGifs, setLoadingGifs] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const emojiPickerRef = useRef<HTMLDivElement>(null)
   const gifPickerRef = useRef<HTMLDivElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
 
   // Close pickers when clicking outside
   useEffect(() => {
@@ -102,6 +104,30 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
     setGifSearch('')
   }
 
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || disabled || isRestricted) return
+
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const response = await fetch('/api/upload-message-image', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Upload failed')
+      onSendMessage(message.trim() || 'Image', 'image', data.url)
+      setMessage('')
+    } catch (err) {
+      console.error('Error uploading image:', err)
+    } finally {
+      setUploadingImage(false)
+      e.target.value = ''
+    }
+  }
+
   return (
     <div className="p-4 border-t border-border bg-card">
       {isRestricted && (
@@ -134,6 +160,30 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
               </div>
             )}
           </div>
+
+          {/* Image Upload Button */}
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageSelect}
+          />
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            disabled={disabled || isRestricted || uploadingImage}
+            className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Send image"
+          >
+            {uploadingImage ? (
+              <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            )}
+          </button>
 
           {/* GIF Picker Button */}
           <div className="relative" ref={gifPickerRef}>

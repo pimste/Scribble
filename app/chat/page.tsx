@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Profile, Message, ChatContact } from '@/types'
-import { Sidebar } from '@/components/chat/Sidebar'
+import { Sidebar, DIARY_ID } from '@/components/chat/Sidebar'
 import { MessageList } from '@/components/chat/MessageList'
 import { MessageInput } from '@/components/chat/MessageInput'
 import { UserInfo } from '@/components/chat/UserInfo'
@@ -24,8 +24,11 @@ export default function ChatPage() {
   const [mobileView, setMobileView] = useState<MobileView>('contacts')
   const [showUserInfo, setShowUserInfo] = useState(true)
   const [showTour, setShowTour] = useState(false)
+  const [savedMessageIds, setSavedMessageIds] = useState<Set<string>>(new Set())
   const router = useRouter()
   const supabase = createClient()
+
+  const isDiaryView = selectedContactId === DIARY_ID
 
   // Fetch user profile and check auth
   useEffect(() => {
@@ -71,18 +74,19 @@ export default function ChatPage() {
         .or(`user1_id.eq.${profile.id},user2_id.eq.${profile.id}`)
 
       if (contactsData) {
-        const contactIds = contactsData.map(c => 
-          c.user1_id === profile.id ? c.user2_id : c.user1_id
-        )
+        const contactIds = contactsData
+          .map(c => c.user1_id === profile.id ? c.user2_id : c.user1_id)
+          .filter(id => id !== profile.id) // Exclude self-contact (diary)
 
-        if (contactIds.length > 0) {
+        if (contactIds.length === 0) {
+          setContacts([])
+        } else {
           const { data: profilesData } = await supabase
             .from('profiles')
             .select('id, username, display_name, bio, role, restricted, accent_color, profile_picture_url')
             .in('id', contactIds)
 
           if (profilesData) {
-            // Get unread counts for each contact
             const contactsWithCounts = await Promise.all(
               profilesData.map(async (contact) => {
                 // Get last viewed timestamp from localStorage
@@ -171,30 +175,101 @@ export default function ChatPage() {
     }
   }, [profile, supabase])
 
-  // Fetch messages for selected contact
+  // Fetch messages for selected contact or diary
   useEffect(() => {
     if (!profile || !selectedContactId) {
       setMessages([])
+      setSavedMessageIds(new Set())
       return
     }
 
     const fetchMessages = async () => {
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('*')
-        .or(`and(sender_id.eq.${profile.id},receiver_id.eq.${selectedContactId}),and(sender_id.eq.${selectedContactId},receiver_id.eq.${profile.id})`)
-        .order('created_at', { ascending: true })
+      if (selectedContactId === DIARY_ID) {
+        // Ensure self-contact exists for diary
+        const { data: existingSelfContact } = await supabase
+          .from('contacts')
+          .select('id')
+          .eq('user1_id', profile.id)
+          .eq('user2_id', profile.id)
+          .single()
 
-      if (messagesData) {
-        setMessages(messagesData)
+        if (!existingSelfContact) {
+          await supabase.from('contacts').insert({
+            user1_id: profile.id,
+            user2_id: profile.id,
+          })
+        }
+
+        // Fetch self-messages (notes to self)
+        const { data: selfMessages } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('sender_id', profile.id)
+          .eq('receiver_id', profile.id)
+          .order('created_at', { ascending: true })
+
+        // Fetch saved messages
+        const { data: savedRows } = await supabase
+          .from('user_saved_messages')
+          .select('message_id')
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false })
+
+        const savedIds = savedRows?.map(r => r.message_id) || []
+        if (savedIds.length > 0) {
+          const { data: savedMessagesData } = await supabase
+            .from('messages')
+            .select('*')
+            .in('id', savedIds)
+
+          if (savedMessagesData) {
+            const orderMap = new Map(savedIds.map((id, i) => [id, i]))
+            const sorted = [...savedMessagesData].sort(
+              (a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
+            )
+            const selfIds = new Set((selfMessages || []).map(m => m.id))
+            const merged = [
+              ...(selfMessages || []),
+              ...sorted.filter(m => !selfIds.has(m.id))
+            ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+            setMessages(merged)
+          } else {
+            setMessages(selfMessages || [])
+          }
+        } else {
+          setMessages(selfMessages || [])
+        }
+        setSavedMessageIds(new Set(savedIds))
+      } else {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select('*')
+          .or(`and(sender_id.eq.${profile.id},receiver_id.eq.${selectedContactId}),and(sender_id.eq.${selectedContactId},receiver_id.eq.${profile.id})`)
+          .order('created_at', { ascending: true })
+
+        if (messagesData) {
+          setMessages(messagesData)
+          const ids = messagesData.map(m => m.id)
+          if (ids.length > 0) {
+            const { data: savedRows } = await supabase
+              .from('user_saved_messages')
+              .select('message_id')
+              .eq('user_id', profile.id)
+              .in('message_id', ids)
+            setSavedMessageIds(new Set((savedRows || []).map(r => r.message_id)))
+          } else {
+            setSavedMessageIds(new Set())
+          }
+        } else {
+          setMessages([])
+          setSavedMessageIds(new Set())
+        }
       }
     }
 
     fetchMessages()
 
-    // Subscribe to new messages with unique channel name per conversation
     const channelName = `messages:${[profile.id, selectedContactId].sort().join('-')}`
-    
     const messagesChannel = supabase
       .channel(channelName)
       .on('postgres_changes', {
@@ -203,22 +278,24 @@ export default function ChatPage() {
         table: 'messages',
       }, (payload) => {
         const newMessage = payload.new as Message
-        
-        // Only process messages for this conversation
-        if (
+
+        if (selectedContactId === DIARY_ID) {
+          if (newMessage.sender_id === profile.id && newMessage.receiver_id === profile.id) {
+            setMessages(prev => {
+              if (prev.some(m => m.id === newMessage.id)) return prev
+              return [...prev, newMessage].sort(
+                (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              )
+            })
+          }
+        } else if (
           (newMessage.sender_id === profile.id && newMessage.receiver_id === selectedContactId) ||
           (newMessage.sender_id === selectedContactId && newMessage.receiver_id === profile.id)
         ) {
-          // Add message if not already present (prevents duplicates from optimistic updates)
           setMessages(prev => {
-            const exists = prev.some(m => m.id === newMessage.id)
-            if (exists) {
-              return prev
-            }
+            if (prev.some(m => m.id === newMessage.id)) return prev
             return [...prev, newMessage]
           })
-          
-          // Mark as read when viewing the conversation
           if (newMessage.sender_id === selectedContactId && newMessage.receiver_id === profile.id) {
             const lastViewedKey = `lastViewed:${profile.id}:${selectedContactId}`
             localStorage.setItem(lastViewedKey, new Date().toISOString())
@@ -239,27 +316,26 @@ export default function ChatPage() {
     }
   }, [profile, selectedContactId, supabase])
 
-  const handleSendMessage = async (content: string, contentType: 'text' | 'gif' = 'text', mediaUrl?: string) => {
+  const handleSendMessage = async (content: string, contentType: 'text' | 'gif' | 'image' = 'text', mediaUrl?: string) => {
     if (!profile || !selectedContactId) return
 
-    // Create optimistic message with temporary ID
+    const receiverId = selectedContactId === DIARY_ID ? profile.id : selectedContactId
+
     const optimisticMessage: Message = {
       id: `temp-${Date.now()}`,
       sender_id: profile.id,
-      receiver_id: selectedContactId,
+      receiver_id: receiverId,
       content,
       content_type: contentType,
       media_url: mediaUrl,
       created_at: new Date().toISOString(),
     }
 
-    // Add message optimistically to show it immediately
     setMessages(prev => [...prev, optimisticMessage])
 
-    // Insert to database
     const { data, error } = await supabase.from('messages').insert({
       sender_id: profile.id,
-      receiver_id: selectedContactId,
+      receiver_id: receiverId,
       content,
       content_type: contentType,
       media_url: mediaUrl,
@@ -267,13 +343,22 @@ export default function ChatPage() {
 
     if (error) {
       console.error('Error sending message:', error)
-      // Remove optimistic message if there was an error
       setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
     } else if (data) {
-      // Replace optimistic message with real message from database
       setMessages(prev => 
         prev.map(m => m.id === optimisticMessage.id ? data as Message : m)
       )
+    }
+  }
+
+  const handleSaveToDiary = async (messageId: string) => {
+    if (!profile) return
+    const { error } = await supabase.from('user_saved_messages').insert({
+      user_id: profile.id,
+      message_id: messageId,
+    })
+    if (!error) {
+      setSavedMessageIds(prev => new Set([...prev, messageId]))
     }
   }
 
@@ -296,20 +381,17 @@ export default function ChatPage() {
   const handleSelectContact = (contactId: string) => {
     setSelectedContactId(contactId)
     setMobileView('chat')
-    
-    // Mark messages as read by storing current timestamp
-    if (profile) {
+
+    if (contactId !== DIARY_ID && profile) {
       const lastViewedKey = `lastViewed:${profile.id}:${contactId}`
       localStorage.setItem(lastViewedKey, new Date().toISOString())
-      
-      // Update contact's unread count to 0
       setContacts(prev => 
         prev.map(c => c.id === contactId ? { ...c, unreadCount: 0 } : c)
       )
     }
   }
 
-  const selectedContact = contacts.find(c => c.id === selectedContactId) || null
+  const selectedContact = selectedContactId === DIARY_ID ? null : contacts.find(c => c.id === selectedContactId) || null
 
   if (loading) {
     return (
@@ -337,7 +419,7 @@ export default function ChatPage() {
           )}
           
           <h1 className="text-xl md:text-2xl font-bold">
-            {mobileView === 'contacts' || !selectedContact ? 'Scribble' : selectedContact.username}
+            {mobileView === 'contacts' ? 'Scribble' : isDiaryView ? 'Diary' : selectedContact?.username ?? 'Scribble'}
           </h1>
           
           {profile && (
@@ -349,7 +431,7 @@ export default function ChatPage() {
         
         <div className="flex items-center gap-1 md:gap-2">
           {/* Mobile info button when in chat */}
-          {mobileView === 'chat' && selectedContact && (
+          {mobileView === 'chat' && (selectedContact || isDiaryView) && (
             <button
               onClick={() => setMobileView('info')}
               className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors"
@@ -361,8 +443,8 @@ export default function ChatPage() {
             </button>
           )}
 
-          {/* Desktop info toggle button when chat is selected */}
-          {selectedContact && (
+          {/* Desktop info toggle button when chat or diary is selected */}
+          {(selectedContact || isDiaryView) && (
             <button
               onClick={() => setShowUserInfo(!showUserInfo)}
               className="hidden lg:flex p-2 rounded-lg border border-border hover:bg-accent transition-colors"
@@ -458,11 +540,14 @@ export default function ChatPage() {
                 messages={messages} 
                 currentUserId={profile?.id || ''} 
                 userAccentColor={profile?.accent_color || 'blue'}
+                isDiaryView={isDiaryView}
+                savedMessageIds={savedMessageIds}
+                onSaveToDiary={handleSaveToDiary}
               />
               <MessageInput
                 onSendMessage={handleSendMessage}
                 disabled={!profile}
-                isRestricted={profile?.restricted}
+                isRestricted={!isDiaryView && !!profile?.restricted}
               />
             </>
           ) : (
@@ -486,6 +571,7 @@ export default function ChatPage() {
             <UserInfo 
               contact={selectedContact} 
               onClose={() => setShowUserInfo(false)}
+              isDiaryView={isDiaryView}
             />
           </div>
         )}

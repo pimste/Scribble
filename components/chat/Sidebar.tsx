@@ -2,6 +2,8 @@
 
 import { ChatContact } from '@/types'
 
+export const DIARY_ID = '__diary__'
+
 interface SidebarProps {
   contacts: ChatContact[]
   selectedContactId: string | null
@@ -9,7 +11,7 @@ interface SidebarProps {
   currentUserId: string
 }
 
-export function Sidebar({ contacts, selectedContactId, onSelectContact }: SidebarProps) {
+export function Sidebar({ contacts, selectedContactId, onSelectContact, currentUserId }: SidebarProps) {
   return (
     <div className="w-full h-full bg-card border-r border-border overflow-y-auto">
       <div className="p-4 border-b border-border">
@@ -17,12 +19,30 @@ export function Sidebar({ contacts, selectedContactId, onSelectContact }: Sideba
       </div>
       
       <div className="divide-y divide-border">
+        {/* Diary entry at top */}
+        <button
+          onClick={() => onSelectContact(DIARY_ID)}
+          className={`w-full p-4 text-left hover:bg-accent transition-colors flex items-center gap-3 ${
+            selectedContactId === DIARY_ID ? 'bg-accent' : ''
+          }`}
+        >
+          <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+            <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium">Diary</p>
+            <p className="text-xs text-muted-foreground">Notes and saved messages</p>
+          </div>
+        </button>
+
         {contacts.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             No contacts yet. Use an invite code to connect!
           </div>
         ) : (
-          contacts.map((contact) => (
+          contacts.filter((c) => c.id !== currentUserId).map((contact) => (
             <button
               key={contact.id}
               onClick={() => onSelectContact(contact.id)}

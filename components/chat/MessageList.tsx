@@ -10,6 +10,7 @@ interface MessageListProps {
   isDiaryView?: boolean
   savedMessageIds?: Set<string>
   onSaveToDiary?: (messageId: string) => void
+  senderNames?: Record<string, string>
 }
 
 const accentColorClasses = {
@@ -23,7 +24,7 @@ const accentColorClasses = {
   teal: 'bg-teal-500 text-white',
 }
 
-export function MessageList({ messages, currentUserId, userAccentColor = 'blue', isDiaryView = false, savedMessageIds = new Set(), onSaveToDiary }: MessageListProps) {
+export function MessageList({ messages, currentUserId, userAccentColor = 'blue', isDiaryView = false, savedMessageIds = new Set(), onSaveToDiary, senderNames = {} }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -35,28 +36,49 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   }
 
-  return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-muted-foreground">
-          {isDiaryView ? 'No notes yet. Write something to yourself or save messages from chats!' : 'No messages yet. Start the conversation!'}
-        </div>
-      ) : (
-        messages.map((message) => {
-          const isOwn = message.sender_id === currentUserId
-          const isSending = message.id.startsWith('temp-')
-          const isGif = message.content_type === 'gif' && message.media_url
-          const isImage = message.content_type === 'image' && message.media_url
-          const hasMedia = isGif || isImage
-          const isSaved = savedMessageIds.has(message.id)
+  const formatDateLabel = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (date.toDateString() === today.toDateString()) return 'Today'
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday'
+    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
+  }
 
-          return (
-            <div
-              key={message.id}
-              className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
-            >
+  const renderContent = () => {
+    let lastDate = ''
+    return messages.map((message) => {
+      const msgDate = message.created_at.split('T')[0]
+      const showDateSeparator = msgDate !== lastDate
+      if (showDateSeparator) lastDate = msgDate
+
+      const isOwn = message.sender_id === currentUserId
+      const isSending = message.id.startsWith('temp-')
+      const isGif = message.content_type === 'gif' && message.media_url
+      const isImage = message.content_type === 'image' && message.media_url
+      const hasMedia = isGif || isImage
+      const isSaved = savedMessageIds.has(message.id)
+      const senderName = isDiaryView ? (senderNames[message.sender_id] ?? 'Unknown') : null
+
+      return (
+        <div key={message.id} className="space-y-1">
+          {showDateSeparator && (
+            <div className="flex justify-center py-3">
+              <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                {formatDateLabel(message.created_at)}
+              </span>
+            </div>
+          )}
+          <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
+            <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[70%]`}>
+              {isDiaryView && senderName && (
+                <span className="text-xs font-medium text-muted-foreground mb-0.5 px-1">
+                  {senderName}
+                </span>
+              )}
               <div
-                className={`max-w-[70%] rounded-2xl ${
+                className={`rounded-2xl ${
                   hasMedia ? 'p-2' : 'px-4 py-2'
                 } ${
                   isOwn
@@ -104,12 +126,10 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
                   {isOwn && (
                     <span className="flex items-center">
                       {isSending ? (
-                        // Clock icon for sending
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       ) : (
-                        // Check mark for delivered
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
@@ -119,8 +139,20 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
                 </div>
               </div>
             </div>
-          )
-        })
+          </div>
+        </div>
+      )
+    })
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {messages.length === 0 ? (
+        <div className="h-full flex items-center justify-center text-muted-foreground">
+          {isDiaryView ? 'No notes yet. Write something to yourself or save messages from chats!' : 'No messages yet. Start the conversation!'}
+        </div>
+      ) : (
+        renderContent()
       )}
       <div ref={messagesEndRef} />
     </div>

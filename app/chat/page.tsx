@@ -25,6 +25,7 @@ export default function ChatPage() {
   const [showUserInfo, setShowUserInfo] = useState(true)
   const [showTour, setShowTour] = useState(false)
   const [savedMessageIds, setSavedMessageIds] = useState<Set<string>>(new Set())
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({})
   const router = useRouter()
   const supabase = createClient()
 
@@ -180,6 +181,7 @@ export default function ChatPage() {
     if (!profile || !selectedContactId) {
       setMessages([])
       setSavedMessageIds(new Set())
+      setSenderNames({})
       return
     }
 
@@ -216,11 +218,13 @@ export default function ChatPage() {
           .order('created_at', { ascending: false })
 
         const savedIds = savedRows?.map(r => r.message_id) || []
+        let savedMessagesData: Message[] | null = null
         if (savedIds.length > 0) {
-          const { data: savedMessagesData } = await supabase
+          const { data } = await supabase
             .from('messages')
             .select('*')
             .in('id', savedIds)
+          savedMessagesData = data
 
           if (savedMessagesData) {
             const orderMap = new Map(savedIds.map((id, i) => [id, i]))
@@ -240,6 +244,33 @@ export default function ChatPage() {
           setMessages(selfMessages || [])
         }
         setSavedMessageIds(new Set(savedIds))
+
+        const allDiaryMessages = (() => {
+          if (savedIds.length > 0 && savedMessagesData) {
+            const selfIds = new Set((selfMessages || []).map(m => m.id))
+            const merged = [
+              ...(selfMessages || []),
+              ...savedMessagesData.filter(m => !selfIds.has(m.id))
+            ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+            return merged
+          }
+          return selfMessages || []
+        })()
+        const senderIds = [...new Set(allDiaryMessages.map(m => m.sender_id))]
+        const otherSenderIds = senderIds.filter(id => id !== profile.id)
+        if (otherSenderIds.length > 0) {
+          const { data: senderProfiles } = await supabase
+            .from('profiles')
+            .select('id, username, display_name')
+            .in('id', otherSenderIds)
+          const names: Record<string, string> = { [profile.id]: 'You' }
+          senderProfiles?.forEach(p => {
+            names[p.id] = p.display_name || p.username
+          })
+          setSenderNames(names)
+        } else {
+          setSenderNames({ [profile.id]: 'You' })
+        }
       } else {
         const { data: messagesData } = await supabase
           .from('messages')
@@ -264,6 +295,7 @@ export default function ChatPage() {
           setMessages([])
           setSavedMessageIds(new Set())
         }
+        setSenderNames({})
       }
     }
 
@@ -543,6 +575,7 @@ export default function ChatPage() {
                 isDiaryView={isDiaryView}
                 savedMessageIds={savedMessageIds}
                 onSaveToDiary={handleSaveToDiary}
+                senderNames={senderNames}
               />
               <MessageInput
                 onSendMessage={handleSendMessage}

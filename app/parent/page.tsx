@@ -31,6 +31,16 @@ export default function ParentPage() {
   const [analyzingNew, setAnalyzingNew] = useState(false)
   const [conversationSafety, setConversationSafety] = useState<ConversationSafety | null>(null)
   const [lastCheckedTimes, setLastCheckedTimes] = useState<Record<string, string>>({})
+  const [showAddChild, setShowAddChild] = useState(false)
+  const [addChildForm, setAddChildForm] = useState({
+    displayName: '',
+    username: '',
+    password: '',
+    birthDate: '',
+  })
+  const [addChildError, setAddChildError] = useState('')
+  const [addChildSuccess, setAddChildSuccess] = useState('')
+  const [addChildLoading, setAddChildLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -206,6 +216,51 @@ export default function ParentPage() {
     }
   }
 
+  const handleAddChild = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAddChildError('')
+    setAddChildSuccess('')
+    setAddChildLoading(true)
+
+    try {
+      const response = await fetch('/api/parent/add-child', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: addChildForm.displayName.trim() || undefined,
+          username: addChildForm.username.trim(),
+          password: addChildForm.password,
+          birthDate: addChildForm.birthDate || undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add child')
+      }
+
+      setAddChildSuccess(`Child account created. Share username "${data.username}" and the password with your child so they can log in.`)
+      setAddChildForm({ displayName: '', username: '', password: '', birthDate: '' })
+
+      const { data: newChild } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', data.username)
+        .single()
+
+      if (newChild) {
+        setChildren(prev => [...prev, { ...newChild, contacts: [] }])
+      }
+
+      setShowAddChild(false)
+    } catch (err: any) {
+      setAddChildError(err.message || 'Failed to add child')
+    } finally {
+      setAddChildLoading(false)
+    }
+  }
+
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
     return date.toLocaleString('en-US', { 
@@ -256,7 +311,7 @@ export default function ParentPage() {
 
       <div className="container max-w-7xl mx-auto p-3 md:p-6">
 
-        {children.length === 0 ? (
+        {children.length === 0 && !showAddChild ? (
           <div className="bg-card border border-border rounded-xl p-6 md:p-12 text-center">
             <div className="max-w-md mx-auto space-y-4">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
@@ -266,24 +321,110 @@ export default function ParentPage() {
               </div>
               <h3 className="text-xl font-semibold">No Linked Children</h3>
               <p className="text-muted-foreground">
-                Share your parent code with your child during their registration to link their account.
+                Add your first child to get started. You can monitor their chats and manage their contacts from here.
               </p>
               <div className="pt-4">
-                <Link
-                  href="/invite"
+                <button
+                  onClick={() => setShowAddChild(true)}
                   className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
                 >
-                  View Your Parent Code
-                </Link>
+                  Add Child
+                </button>
               </div>
             </div>
+          </div>
+        ) : children.length === 0 && showAddChild ? (
+          <div className="bg-card border border-border rounded-xl p-6 md:p-8 max-w-md mx-auto">
+            <h3 className="text-xl font-semibold mb-4">Add Your First Child</h3>
+            <form onSubmit={handleAddChild} className="space-y-4">
+              {addChildError && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
+                  {addChildError}
+                </div>
+              )}
+              {addChildSuccess && (
+                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500 text-green-700 dark:text-green-400 text-sm">
+                  {addChildSuccess}
+                </div>
+              )}
+              <div>
+                <label htmlFor="displayName" className="block text-sm font-medium mb-2">Child&apos;s Name</label>
+                <input
+                  id="displayName"
+                  type="text"
+                  value={addChildForm.displayName}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, displayName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Emma"
+                />
+              </div>
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium mb-2">Username</label>
+                <input
+                  id="username"
+                  type="text"
+                  required
+                  value={addChildForm.username}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, username: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="emma123"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Your child will use this to log in</p>
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={addChildForm.password}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, password: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="••••••••"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Share this with your child so they can log in</p>
+              </div>
+              <div>
+                <label htmlFor="birthDate" className="block text-sm font-medium mb-2">Birth Date</label>
+                <input
+                  id="birthDate"
+                  type="date"
+                  value={addChildForm.birthDate}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, birthDate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowAddChild(false); setAddChildError(''); setAddChildSuccess(''); }}
+                  className="flex-1 py-2 px-4 border border-border rounded-lg hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addChildLoading}
+                  className="flex-1 py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
+                >
+                  {addChildLoading ? 'Adding...' : 'Add Child'}
+                </button>
+              </div>
+            </form>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Left Panel - Children List */}
             <div className="bg-card border border-border rounded-xl overflow-hidden h-fit md:h-auto">
-              <div className="p-3 md:p-4 border-b border-border">
+              <div className="p-3 md:p-4 border-b border-border flex items-center justify-between gap-2">
                 <h2 className="text-sm md:text-base font-semibold">Linked Children</h2>
+                <button
+                  onClick={() => setShowAddChild(true)}
+                  className="text-sm px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                >
+                  Add Child
+                </button>
               </div>
               <div className="divide-y divide-border">
                 {children.map((child) => (
@@ -573,6 +714,91 @@ export default function ParentPage() {
           </div>
         )}
       </div>
+
+      {/* Add Child Modal (when user has children) */}
+      {showAddChild && children.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-semibold mb-4">Add Child</h3>
+            <form onSubmit={handleAddChild} className="space-y-4">
+              {addChildError && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
+                  {addChildError}
+                </div>
+              )}
+              {addChildSuccess && (
+                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500 text-green-700 dark:text-green-400 text-sm">
+                  {addChildSuccess}
+                </div>
+              )}
+              <div>
+                <label htmlFor="modal-displayName" className="block text-sm font-medium mb-2">Child&apos;s Name</label>
+                <input
+                  id="modal-displayName"
+                  type="text"
+                  value={addChildForm.displayName}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, displayName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Emma"
+                />
+              </div>
+              <div>
+                <label htmlFor="modal-username" className="block text-sm font-medium mb-2">Username</label>
+                <input
+                  id="modal-username"
+                  type="text"
+                  required
+                  value={addChildForm.username}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, username: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="emma123"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Your child will use this to log in</p>
+              </div>
+              <div>
+                <label htmlFor="modal-password" className="block text-sm font-medium mb-2">Password</label>
+                <input
+                  id="modal-password"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={addChildForm.password}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, password: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="••••••••"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Share this with your child so they can log in</p>
+              </div>
+              <div>
+                <label htmlFor="modal-birthDate" className="block text-sm font-medium mb-2">Birth Date</label>
+                <input
+                  id="modal-birthDate"
+                  type="date"
+                  value={addChildForm.birthDate}
+                  onChange={(e) => setAddChildForm(f => ({ ...f, birthDate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowAddChild(false); setAddChildError(''); setAddChildSuccess(''); }}
+                  className="flex-1 py-2 px-4 border border-border rounded-lg hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addChildLoading}
+                  className="flex-1 py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
+                >
+                  {addChildLoading ? 'Adding...' : 'Add Child'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Navigation */}
       <MobileNavigation isParent={true} />

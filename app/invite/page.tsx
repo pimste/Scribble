@@ -15,7 +15,6 @@ export default function InvitePage() {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [copiedParent, setCopiedParent] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -47,14 +46,6 @@ export default function InvitePage() {
       navigator.clipboard.writeText(profile.invite_code)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    }
-  }
-
-  const handleCopyParentCode = () => {
-    if (profile?.invite_code) {
-      navigator.clipboard.writeText(profile.invite_code)
-      setCopiedParent(true)
-      setTimeout(() => setCopiedParent(false), 2000)
     }
   }
 
@@ -142,9 +133,7 @@ export default function InvitePage() {
               <div>
                 <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Invite Friends</h1>
                 <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                  {profile.role === 'parent' 
-                    ? 'Share your codes to connect with others or link child accounts'
-                    : 'Share your code to connect with friends'}
+                  Share your code to connect with friends
                 </p>
               </div>
             </div>
@@ -156,115 +145,11 @@ export default function InvitePage() {
       <div className="container max-w-5xl mx-auto p-3 md:p-6">
         <div className="space-y-4 md:space-y-6">
 
-          {/* Parent Account - Show Both Codes */}
-          {profile.role === 'parent' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-              {/* Parent Code */}
-              <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-2 border-blue-500/20 rounded-xl p-4 md:p-6 space-y-3 md:space-y-4">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-lg md:text-xl font-semibold">Parent Code</h2>
-                    <p className="text-xs md:text-sm text-muted-foreground">For linking child accounts</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 md:space-y-3">
-                  <div className="p-3 md:p-4 bg-card rounded-lg border border-border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1 md:mb-2">YOUR PARENT CODE</p>
-                    <p className="font-mono text-sm md:text-lg break-all">{profile.invite_code}</p>
-                  </div>
-
-                  <button
-                    onClick={handleCopyParentCode}
-                    className="w-full py-2 md:py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base"
-                  >
-                    {copiedParent ? (
-                      <>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        Copy Parent Code
-                      </>
-                    )}
-                  </button>
-
-                  <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
-                      <span className="font-semibold">👶 For Children:</span> Share this code with your child during their registration to link their account to yours.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Friend Code */}
-              <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 border-2 border-green-500/20 rounded-xl p-4 md:p-6 space-y-3 md:space-y-4">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-lg md:text-xl font-semibold">Friend Code</h2>
-                    <p className="text-xs md:text-sm text-muted-foreground">For adding chat contacts</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 md:space-y-3">
-                  <div className="p-3 md:p-4 bg-card rounded-lg border border-border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1 md:mb-2">YOUR FRIEND CODE</p>
-                    <p className="font-mono text-sm md:text-lg break-all">{profile.invite_code}</p>
-                  </div>
-
-                  <button
-                    onClick={handleCopyCode}
-                    className="w-full py-2 md:py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base"
-                  >
-                    {copied ? (
-                      <>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        Copy Friend Code
-                      </>
-                    )}
-                  </button>
-
-                  <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                    <p className="text-xs text-green-600 dark:text-green-400">
-                      <span className="font-semibold">💬 For Friends:</span> Share this code with friends so they can add you and start chatting.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Child Account - Only Friend Code */}
-          {profile.role === 'child' && (
-            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/20 rounded-xl p-4 md:p-6 space-y-3 md:space-y-4">
+          {/* Invite Code - Parents and Children */}
+          <div className="bg-gradient-to-br from-green-500/10 to-teal-500/10 border-2 border-green-500/20 rounded-xl p-4 md:p-6 space-y-3 md:space-y-4">
               <div className="flex items-center gap-2 md:gap-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -282,7 +167,7 @@ export default function InvitePage() {
 
                 <button
                   onClick={handleCopyCode}
-                  className="w-full py-2 md:py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base"
+                  className="w-full py-2 md:py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base"
                 >
                   {copied ? (
                     <>
@@ -302,7 +187,6 @@ export default function InvitePage() {
                 </button>
               </div>
             </div>
-          )}
 
           {/* Add Contact Section */}
           <div className="bg-card border border-border rounded-xl p-4 md:p-6 space-y-3 md:space-y-4">

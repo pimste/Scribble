@@ -11,6 +11,7 @@ interface MessageInputProps {
   onSendMessage: (content: string, contentType?: 'text' | 'gif' | 'image', mediaUrl?: string) => void
   disabled?: boolean
   isRestricted?: boolean
+  onInputBlur?: () => void
 }
 
 interface GifResult {
@@ -22,16 +23,19 @@ interface GifResult {
   height: number
 }
 
-export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageInputProps) {
+export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlur }: MessageInputProps) {
   const [message, setMessage] = useState('')
+  const inputContainerRef = useRef<HTMLDivElement>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showGifPicker, setShowGifPicker] = useState(false)
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
   const [gifSearch, setGifSearch] = useState('')
   const [gifs, setGifs] = useState<GifResult[]>([])
   const [loadingGifs, setLoadingGifs] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const emojiPickerRef = useRef<HTMLDivElement>(null)
   const gifPickerRef = useRef<HTMLDivElement>(null)
+  const attachMenuRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
 
   // Close pickers when clicking outside
@@ -42,6 +46,9 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
       }
       if (gifPickerRef.current && !gifPickerRef.current.contains(event.target as Node)) {
         setShowGifPicker(false)
+      }
+      if (attachMenuRef.current && !attachMenuRef.current.contains(event.target as Node)) {
+        setShowAttachMenu(false)
       }
     }
 
@@ -128,8 +135,15 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
     }
   }
 
+  const handleInputBlur = () => {
+    onInputBlur?.()
+    requestAnimationFrame(() => {
+      inputContainerRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+    })
+  }
+
   return (
-    <div className="p-4 border-t border-border bg-card min-w-0 overflow-hidden">
+    <div ref={inputContainerRef} className="p-4 border-t border-border bg-card min-w-0 overflow-hidden">
       {isRestricted && (
         <div className="mb-3 p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
           Your account has been restricted by your parent. You cannot send messages.
@@ -161,7 +175,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
             )}
           </div>
 
-          {/* Image Upload Button */}
+          {/* Attach menu: Image + GIF under a + button */}
           <input
             ref={imageInputRef}
             type="file"
@@ -169,36 +183,59 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
             className="hidden"
             onChange={handleImageSelect}
           />
-          <button
-            type="button"
-            onClick={() => imageInputRef.current?.click()}
-            disabled={disabled || isRestricted || uploadingImage}
-            className="p-2 flex-shrink-0 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Send image"
-          >
-            {uploadingImage ? (
-              <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            ) : (
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            )}
-          </button>
-
-          {/* GIF Picker Button */}
-          <div className="relative flex-shrink-0" ref={gifPickerRef}>
+          <div className="relative flex-shrink-0" ref={attachMenuRef}>
             <button
               type="button"
               onClick={() => {
-                setShowGifPicker(!showGifPicker)
+                setShowAttachMenu(!showAttachMenu)
                 setShowEmojiPicker(false)
               }}
               disabled={disabled || isRestricted}
-              className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm"
-              title="Add GIF"
+              className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Attach"
             >
-              GIF
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
             </button>
+            {showAttachMenu && (
+              <div className="absolute bottom-full left-0 mb-2 flex flex-col gap-2 items-center z-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAttachMenu(false)
+                    setShowGifPicker(true)
+                  }}
+                  disabled={disabled || isRestricted}
+                  className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 flex items-center justify-center transition-transform font-bold text-sm"
+                  title="GIF"
+                >
+                  GIF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAttachMenu(false)
+                    imageInputRef.current?.click()
+                  }}
+                  disabled={disabled || isRestricted || uploadingImage}
+                  className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 flex items-center justify-center transition-transform"
+                  title="Image"
+                >
+                  {uploadingImage ? (
+                    <div className="w-5 h-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* GIF Picker (opens from attach menu) */}
+          <div className="relative flex-shrink-0" ref={gifPickerRef}>
             {showGifPicker && (
               <div className="absolute bottom-full mb-2 left-0 z-50 w-80 h-96 max-w-[min(320px,calc(100vw-2rem))] max-h-[min(384px,60vh)] bg-card border border-border rounded-lg shadow-lg overflow-hidden flex flex-col">
                 <div className="p-3 border-b border-border">
@@ -246,6 +283,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onBlur={handleInputBlur}
             disabled={disabled || isRestricted}
             placeholder={isRestricted ? "Messaging restricted" : "Type a message..."}
             className="flex-1 min-w-0 px-4 py-2 border border-input rounded-full bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"

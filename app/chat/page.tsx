@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Profile, Message, ChatContact } from '@/types'
 import { Sidebar, DIARY_ID } from '@/components/chat/Sidebar'
-import { MessageList } from '@/components/chat/MessageList'
+import { MessageList, type MessageListHandle } from '@/components/chat/MessageList'
 import { MessageInput } from '@/components/chat/MessageInput'
 import { UserInfo } from '@/components/chat/UserInfo'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -28,8 +28,23 @@ export default function ChatPage() {
   const [senderNames, setSenderNames] = useState<Record<string, string>>({})
   const router = useRouter()
   const supabase = createClient()
+  const messageListRef = useRef<MessageListHandle>(null)
 
   const isDiaryView = selectedContactId === DIARY_ID
+
+  // Fix layout when keyboard dismisses on mobile (input blur or viewport resize)
+  useEffect(() => {
+    let lastHeight = typeof window !== 'undefined' ? window.visualViewport?.height ?? window.innerHeight : 0
+    const handleViewportResize = () => {
+      const vv = window.visualViewport
+      if (vv && vv.height > lastHeight) {
+        messageListRef.current?.scrollToBottom()
+      }
+      lastHeight = vv?.height ?? window.innerHeight
+    }
+    window.visualViewport?.addEventListener('resize', handleViewportResize)
+    return () => window.visualViewport?.removeEventListener('resize', handleViewportResize)
+  }, [])
 
   // Fetch user profile and check auth
   useEffect(() => {
@@ -572,6 +587,7 @@ export default function ChatPage() {
           {selectedContactId ? (
             <>
               <MessageList 
+                ref={messageListRef}
                 messages={messages} 
                 currentUserId={profile?.id || ''} 
                 userAccentColor={profile?.accent_color || 'blue'}
@@ -584,6 +600,7 @@ export default function ChatPage() {
                 onSendMessage={handleSendMessage}
                 disabled={!profile}
                 isRestricted={!isDiaryView && !!profile?.restricted}
+                onInputBlur={() => messageListRef.current?.scrollToBottom()}
               />
             </>
           ) : (

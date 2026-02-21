@@ -1,7 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 import { Message } from '@/types'
+
+export interface MessageListHandle {
+  scrollToBottom: () => void
+}
 
 interface MessageListProps {
   messages: Message[]
@@ -24,8 +28,17 @@ const accentColorClasses = {
   teal: 'bg-teal-500 text-white',
 }
 
-export function MessageList({ messages, currentUserId, userAccentColor = 'blue', isDiaryView = false, savedMessageIds = new Set(), onSaveToDiary, senderNames = {} }: MessageListProps) {
+export const MessageList = forwardRef<MessageListHandle, MessageListProps>(function MessageList(
+  { messages, currentUserId, userAccentColor = 'blue', isDiaryView = false, savedMessageIds = new Set(), onSaveToDiary, senderNames = {} },
+  ref
+) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    scrollToBottom: () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }), [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -157,5 +170,5 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
       <div ref={messagesEndRef} />
     </div>
   )
-}
+})
 

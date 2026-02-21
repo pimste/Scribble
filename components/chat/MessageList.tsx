@@ -71,7 +71,7 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
             </div>
           )}
           <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
-            <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[70%]`}>
+            <div className={`flex flex-col min-w-0 ${isOwn ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[70%]`}>
               {isDiaryView && senderName && (
                 <span className="text-xs font-medium text-muted-foreground mb-0.5 px-1">
                   {senderName}
@@ -88,11 +88,11 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
               >
                 {(isGif || isImage) ? (
                   <div className="space-y-1">
-                    <div className="relative rounded-lg overflow-hidden max-w-xs">
+                    <div className="relative rounded-lg overflow-hidden min-w-0 max-w-[min(100%,20rem)]">
                       <img
                         src={message.media_url}
                         alt={message.content}
-                        className="w-full h-auto max-h-64 object-contain"
+                        className="w-full h-auto max-h-[50vh] sm:max-h-64 object-contain"
                         loading="lazy"
                       />
                     </div>
@@ -146,7 +146,7 @@ export function MessageList({ messages, currentUserId, userAccentColor = 'blue',
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
       {messages.length === 0 ? (
         <div className="h-full flex items-center justify-center text-muted-foreground">
           {isDiaryView ? 'No notes yet. Write something to yourself or save messages from chats!' : 'No messages yet. Start the conversation!'}

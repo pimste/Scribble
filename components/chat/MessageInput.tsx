@@ -155,7 +155,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
               </svg>
             </button>
             {showEmojiPicker && (
-              <div className="absolute bottom-full mb-2 left-0 z-50">
+              <div className="absolute bottom-full mb-2 left-0 z-50 max-h-[50vh] overflow-y-auto">
                 <EmojiPicker onEmojiClick={handleEmojiClick} />
               </div>
             )}
@@ -200,7 +200,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
               GIF
             </button>
             {showGifPicker && (
-              <div className="absolute bottom-full mb-2 left-0 z-50 w-80 h-96 bg-card border border-border rounded-lg shadow-lg overflow-hidden flex flex-col">
+              <div className="absolute bottom-full mb-2 left-0 z-50 w-80 h-96 max-w-[min(320px,calc(100vw-2rem))] max-h-[min(384px,60vh)] bg-card border border-border rounded-lg shadow-lg overflow-hidden flex flex-col">
                 <div className="p-3 border-b border-border">
                   <input
                     type="text"
@@ -248,7 +248,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted }: MessageI
             onChange={(e) => setMessage(e.target.value)}
             disabled={disabled || isRestricted}
             placeholder={isRestricted ? "Messaging restricted" : "Type a message..."}
-            className="flex-1 px-4 py-2 border border-input rounded-full bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 min-w-0 px-4 py-2 border border-input rounded-full bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           />
           
           {/* Send Button */}

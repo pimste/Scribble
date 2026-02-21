@@ -441,7 +441,10 @@ export default function ChatPage() {
           {/* Mobile back button */}
           {mobileView !== 'contacts' && (
             <button
-              onClick={() => setMobileView(selectedContactId ? 'chat' : 'contacts')}
+              onClick={() => {
+                if (mobileView === 'info') setMobileView('chat')
+                else setMobileView('contacts')
+              }}
               className="md:hidden p-2 hover:bg-accent rounded-lg"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -545,7 +548,7 @@ export default function ChatPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex overflow-hidden pb-16 md:pb-0">
+      <div className="flex-1 flex overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         {/* Left Sidebar - Contacts (Desktop: always visible, Tablet: collapsible, Mobile: view-based) */}
         <div className={`
           w-full md:w-80 lg:w-96 flex-shrink-0
@@ -562,7 +565,7 @@ export default function ChatPage() {
 
         {/* Middle Panel - Chat Messages */}
         <div className={`
-          flex-1 flex flex-col bg-background
+          flex-1 flex flex-col min-h-0 bg-background
           ${mobileView === 'chat' ? 'flex' : 'hidden'}
           md:flex
         `}>
@@ -603,7 +606,10 @@ export default function ChatPage() {
           `}>
             <UserInfo 
               contact={selectedContact} 
-              onClose={() => setShowUserInfo(false)}
+              onClose={() => {
+                setShowUserInfo(false)
+                if (mobileView === 'info') setMobileView('chat')
+              }}
               isDiaryView={isDiaryView}
             />
           </div>

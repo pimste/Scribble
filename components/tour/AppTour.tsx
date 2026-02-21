@@ -17,9 +17,20 @@ interface AppTourProps {
   userRole?: 'parent' | 'child'
 }
 
+const MOBILE_BREAKPOINT = '(max-width: 767px)'
+
 export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_BREAKPOINT)
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   const childSteps: TourStep[] = [
     {
@@ -127,7 +138,85 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
     }
   ]
 
-  const steps = userRole === 'parent' ? parentSteps : childSteps
+  const childStepsMobile: TourStep[] = [
+    {
+      id: 'welcome',
+      title: 'Welcome to Scribble!',
+      description: "Hey there! Let's take a quick tour. Tap through to learn the basics!",
+      icon: 'wave',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'contacts',
+      title: 'Your Friends List',
+      description: "Your friends appear here! Tap a name to open a chat.",
+      icon: 'users',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'chat',
+      title: 'Chat Area',
+      description: "Messages show up here in colorful bubbles. Scroll to see your conversation!",
+      icon: 'chat',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'input',
+      title: 'Send Messages',
+      description: "Type here and tap Send! Use the GIF button for fun animations.",
+      icon: 'pencil',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'bottom-nav',
+      title: 'Bottom Navigation',
+      description: "Use the bar below: Chats, Invite, Settings, and Tour. Tap Invite to add friends!",
+      icon: 'userplus',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'done',
+      title: "You're All Set!",
+      description: "That's it! Have fun chatting. Be kind to your friends!",
+      icon: 'check',
+      position: { bottom: '25%', left: '50%' }
+    }
+  ]
+
+  const parentStepsMobile: TourStep[] = [
+    {
+      id: 'welcome',
+      title: 'Welcome to Scribble',
+      description: "Let's show you around! Scribble helps your family stay connected safely.",
+      icon: 'wave',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'contacts',
+      title: 'Contacts & Conversations',
+      description: 'See all your connections here. Tap a contact to view your chat.',
+      icon: 'users',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'bottom-nav',
+      title: 'Bottom Navigation',
+      description: "Use the bar below: Chats, Invite, Parent controls, Settings, and Tour.",
+      icon: 'shield',
+      position: { bottom: '25%', left: '50%' }
+    },
+    {
+      id: 'done',
+      title: "You're Ready!",
+      description: "You're all set! Enjoy staying connected with your family safely.",
+      icon: 'check',
+      position: { bottom: '25%', left: '50%' }
+    }
+  ]
+
+  const steps = isMobile
+    ? (userRole === 'parent' ? parentStepsMobile : childStepsMobile)
+    : (userRole === 'parent' ? parentSteps : childSteps)
 
   useEffect(() => {
     if (isOpen) {
@@ -166,6 +255,7 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
   }
 
   const isCentered = step.position.top === '50%' && step.position.left === '50%'
+  const isBottomCentered = step.position.bottom != null && step.position.left === '50%'
 
   // Icon component
   const renderIcon = (iconName: string) => {
@@ -233,21 +323,21 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
           bottom: step.position.bottom,
           left: step.position.left,
           right: step.position.right,
-          transform: isCentered ? 'translate(-50%, -50%)' : 'none'
+          transform: isCentered ? 'translate(-50%, -50%)' : isBottomCentered ? 'translateX(-50%)' : 'none'
         }}
       >
-        <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-1 rounded-2xl shadow-2xl max-w-md animate-in">
-          <div className="bg-background rounded-2xl p-6 space-y-4">
+        <div className={`bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-1 rounded-2xl shadow-2xl animate-in ${isMobile ? 'max-w-[calc(100%-2rem)]' : 'max-w-md'}`}>
+          <div className={`bg-background rounded-2xl space-y-4 ${isMobile ? 'p-4' : 'p-6'}`}>
             {/* Icon Header */}
             <div className="flex items-center justify-center">
-              <div className="text-primary animate-pulse">
+              <div className={`text-primary animate-pulse ${isMobile ? 'scale-75' : ''}`}>
                 {renderIcon(step.icon)}
               </div>
             </div>
 
             {/* Content */}
             <div className="text-center space-y-2">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h3 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-xl' : 'text-2xl'}`}>
                 {step.title}
               </h3>
               <p className="text-muted-foreground leading-relaxed">

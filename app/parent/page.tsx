@@ -91,39 +91,44 @@ export default function ParentPage() {
     if (!profile) return
 
     const fetchChildren = async () => {
-      const { data: childrenData } = await supabase
+      const { data: childrenData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('parent_id', profile.id)
 
-      if (childrenData) {
-        const childrenWithContacts = await Promise.all(
-          childrenData.map(async (child) => {
-            const { data: contactsData } = await supabase
-              .from('contacts')
-              .select('*')
-              .or(`user1_id.eq.${child.id},user2_id.eq.${child.id}`)
-
-            const contactIds = contactsData?.map(c => 
-              c.user1_id === child.id ? c.user2_id : c.user1_id
-            ) || []
-
-            let contacts: ChatContact[] = []
-            if (contactIds.length > 0) {
-              const { data: profilesData } = await supabase
-                .from('profiles')
-                .select('id, username, role, restricted')
-                .in('id', contactIds)
-
-              contacts = profilesData as ChatContact[] || []
-            }
-
-            return { ...child, contacts }
-          })
-        )
-
-        setChildren(childrenWithContacts)
+      if (error) {
+        console.error('Failed to fetch children:', error)
+        setChildren([])
+        return
       }
+
+      const data = childrenData ?? []
+      const childrenWithContacts = await Promise.all(
+        data.map(async (child) => {
+          const { data: contactsData } = await supabase
+            .from('contacts')
+            .select('*')
+            .or(`user1_id.eq.${child.id},user2_id.eq.${child.id}`)
+
+          const contactIds = contactsData?.map(c =>
+            c.user1_id === child.id ? c.user2_id : c.user1_id
+          ) || []
+
+          let contacts: ChatContact[] = []
+          if (contactIds.length > 0) {
+            const { data: profilesData } = await supabase
+              .from('profiles')
+              .select('id, username, role, restricted')
+              .in('id', contactIds)
+
+            contacts = profilesData as ChatContact[] || []
+          }
+
+          return { ...child, contacts }
+        })
+      )
+
+      setChildren(childrenWithContacts)
     }
 
     fetchChildren()

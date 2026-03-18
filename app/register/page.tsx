@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
+  const [verificationToken, setVerificationToken] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [codeSent, setCodeSent] = useState(false)
@@ -35,9 +36,16 @@ export default function RegisterPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Verificatiecode versturen mislukt')
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Verificatiecode versturen mislukt')
       }
 
+      const data = await response.json()
+      if (!data.verificationToken) {
+        throw new Error('Verificatietoken ontbreekt')
+      }
+
+      setVerificationToken(data.verificationToken)
       setCodeSent(true)
       setStep('verify')
     } catch (err: any) {
@@ -55,7 +63,7 @@ export default function RegisterPage() {
     try {
       // Verify the code first
       const verifyResponse = await fetch(
-        `/api/auth/send-code?email=${encodeURIComponent(email)}&code=${verificationCode}`
+        `/api/auth/send-code?email=${encodeURIComponent(email)}&code=${verificationCode}&token=${encodeURIComponent(verificationToken)}`
       )
 
       if (!verifyResponse.ok) {

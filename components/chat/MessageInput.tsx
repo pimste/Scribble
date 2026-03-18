@@ -35,6 +35,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
   const [loadingGifs, setLoadingGifs] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const emojiPickerRef = useRef<HTMLDivElement>(null)
+  const emojiButtonRef = useRef<HTMLButtonElement>(null)
   const gifPickerRef = useRef<HTMLDivElement>(null)
   const attachMenuRef = useRef<HTMLDivElement>(null)
   const attachButtonRef = useRef<HTMLButtonElement>(null)
@@ -42,6 +43,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [attachBubblePosition, setAttachBubblePosition] = useState<{ top: number; left: number } | null>(null)
   const [gifPickerPosition, setGifPickerPosition] = useState<{ top: number; left: number } | null>(null)
+  const [emojiPickerPosition, setEmojiPickerPosition] = useState<{ top: number; left: number } | null>(null)
 
   useEffect(() => {
     if (showAttachMenu && attachButtonRef.current) {
@@ -70,6 +72,21 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
       setGifPickerPosition(null)
     }
   }, [showGifPicker])
+
+  useEffect(() => {
+    if (showEmojiPicker && emojiButtonRef.current && typeof window !== 'undefined') {
+      const rect = emojiButtonRef.current.getBoundingClientRect()
+      const pickerHeight = Math.min(400, window.innerHeight * 0.5)
+      const pickerWidth = 352
+      const top = rect.top - pickerHeight - 8
+      setEmojiPickerPosition({
+        top: Math.max(8, top),
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - pickerWidth - 8))
+      })
+    } else {
+      setEmojiPickerPosition(null)
+    }
+  }, [showEmojiPicker])
 
   // Close pickers when clicking outside
   useEffect(() => {
@@ -189,8 +206,9 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
       <form onSubmit={handleSubmit} className="relative min-w-0">
         <div className="flex gap-2 items-center min-w-0">
           {/* Emoji Picker Button */}
-          <div className="relative flex-shrink-0" ref={emojiPickerRef}>
+          <div className="relative flex-shrink-0">
             <button
+              ref={emojiButtonRef}
               type="button"
               onClick={() => {
                 setShowEmojiPicker(!showEmojiPicker)
@@ -204,11 +222,6 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </button>
-            {showEmojiPicker && (
-              <div className="absolute bottom-full mb-2 left-0 z-50 max-h-[50vh] overflow-y-auto">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
-              </div>
-            )}
           </div>
 
           {/* Attach menu: Image + GIF under a + button */}
@@ -325,6 +338,21 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                   ))
                 )}
               </div>
+            </div>,
+            document.body
+          )}
+
+          {/* Emoji Picker (portal above input to avoid overflow clipping) */}
+          {showEmojiPicker && emojiPickerPosition && typeof document !== 'undefined' && createPortal(
+            <div
+              ref={emojiPickerRef}
+              className="fixed z-[100] w-[352px] h-[400px] max-h-[50vh] bg-card border border-border rounded-lg shadow-xl overflow-hidden"
+              style={{
+                top: emojiPickerPosition.top,
+                left: emojiPickerPosition.left
+              }}
+            >
+              <EmojiPicker onEmojiClick={handleEmojiClick} />
             </div>,
             document.body
           )}

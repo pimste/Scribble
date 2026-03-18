@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const limit = searchParams.get('limit') || '20'
 
   if (!query) {
-    return NextResponse.json({ error: 'Query parameter required' }, { status: 400 })
+    return NextResponse.json({ error: 'Zoekparameter verplicht' }, { status: 400 })
   }
 
   if (!GIPHY_API_KEY) {

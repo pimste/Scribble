@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const { data: { user } } = await serverClient.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Niet geautoriseerd' }, { status: 401 })
     }
 
     const { data: profile } = await serverClient
@@ -18,21 +18,21 @@ export async function POST(request: Request) {
       .single()
 
     if (!profile || profile.role !== 'parent') {
-      return NextResponse.json({ error: 'Only parents can add children' }, { status: 403 })
+      return NextResponse.json({ error: 'Alleen ouders kunnen kinderen toevoegen' }, { status: 403 })
     }
 
     const { displayName, username, password, birthDate } = await request.json()
 
     if (!username?.trim() || !password) {
       return NextResponse.json(
-        { error: 'Username and password are required' },
+        { error: 'Gebruikersnaam en wachtwoord zijn verplicht' },
         { status: 400 }
       )
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
+        { error: 'Wachtwoord moet minimaal 6 tekens zijn' },
         { status: 400 }
       )
     }
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     if (existingProfile) {
       return NextResponse.json(
-        { error: 'Username is already taken' },
+        { error: 'Gebruikersnaam is al in gebruik' },
         { status: 400 }
       )
     }
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     }
 
     if (!authData.user) {
-      return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
+      return NextResponse.json({ error: 'Aanmaken van gebruiker mislukt' }, { status: 500 })
     }
 
     const { error: profileError } = await supabase.from('profiles').insert({
@@ -89,12 +89,12 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       username: username.trim(),
-      message: 'Child account created successfully',
+      message: 'Kindaccount succesvol aangemaakt',
     })
   } catch (error: any) {
     console.error('Error adding child:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: error.message || 'Interne serverfout' },
       { status: 500 }
     )
   }

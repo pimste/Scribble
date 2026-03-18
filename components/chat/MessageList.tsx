@@ -46,7 +46,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
   }
 
   const formatDateLabel = (timestamp: string) => {
@@ -54,9 +54,9 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
     const today = new Date()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
-    if (date.toDateString() === today.toDateString()) return 'Today'
-    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday'
-    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
+    if (date.toDateString() === today.toDateString()) return 'Vandaag'
+    if (date.toDateString() === yesterday.toDateString()) return 'Gisteren'
+    return date.toLocaleDateString('nl-NL', { weekday: 'long', month: 'long', day: 'numeric', year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined })
   }
 
   const renderContent = () => {
@@ -109,7 +109,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
                         loading="lazy"
                       />
                     </div>
-                    {message.content && message.content !== 'Image' && (
+                    {message.content && message.content !== 'Image' && message.content !== 'Afbeelding' && (
                       <p className="text-xs px-2 opacity-80">{message.content}</p>
                     )}
                   </div>
@@ -129,7 +129,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
                       className={`p-0.5 rounded hover:bg-black/10 transition-colors ${
                         isSaved ? 'text-amber-500' : 'opacity-60 hover:opacity-100'
                       }`}
-                      title={isSaved ? 'Saved to diary' : 'Save to diary'}
+                      title={isSaved ? 'Opgeslagen in dagboek' : 'Opslaan in dagboek'}
                     >
                       <svg className="w-3.5 h-3.5" fill={isSaved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -162,7 +162,7 @@ export const MessageList = forwardRef<MessageListHandle, MessageListProps>(funct
     <div className="flex-1 min-h-0 min-w-0 overflow-x-hidden overflow-y-auto p-4 space-y-4">
       {messages.length === 0 ? (
         <div className="h-full flex items-center justify-center text-muted-foreground">
-          {isDiaryView ? 'No notes yet. Write something to yourself or save messages from chats!' : 'No messages yet. Start the conversation!'}
+          {isDiaryView ? 'Nog geen notities. Schrijf iets aan jezelf of sla berichten uit chats op!' : 'Nog geen berichten. Begin het gesprek!'}
         </div>
       ) : (
         renderContent()

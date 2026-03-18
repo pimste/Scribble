@@ -13,12 +13,12 @@ export function UserInfo({ contact, onClose, isDiaryView = false }: UserInfoProp
     return (
       <div className="w-full h-full bg-card border-l border-border overflow-y-auto">
         <div className="p-4 border-b border-border flex items-center justify-between sticky top-0 bg-card z-10">
-          <h2 className="text-lg font-semibold">Diary</h2>
+          <h2 className="text-lg font-semibold">Dagboek</h2>
           {onClose && (
             <button
               onClick={onClose}
               className="p-2 hover:bg-accent rounded-lg transition-colors"
-              title="Close"
+              title="Sluiten"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -28,10 +28,10 @@ export function UserInfo({ contact, onClose, isDiaryView = false }: UserInfoProp
         </div>
         <div className="p-6 space-y-4">
           <p className="text-sm text-muted-foreground">
-            Your diary is a private space for notes to yourself and messages you save from conversations.
+            Je dagboek is een privéruimte voor notities aan jezelf en berichten die je uit gesprekken opslaat.
           </p>
           <p className="text-sm text-muted-foreground">
-            Tap the bookmark icon on any message in a chat to save it here.
+            Tik op het bladwijzericoon bij een bericht in een chat om het hier op te slaan.
           </p>
         </div>
       </div>
@@ -42,7 +42,7 @@ export function UserInfo({ contact, onClose, isDiaryView = false }: UserInfoProp
     return (
       <div className="w-full h-full bg-card border-l border-border p-6">
         <div className="text-center text-muted-foreground">
-          Select a contact to view details
+          Selecteer een contact om details te bekijken
         </div>
       </div>
     )
@@ -52,12 +52,12 @@ export function UserInfo({ contact, onClose, isDiaryView = false }: UserInfoProp
     <div className="w-full h-full bg-card border-l border-border overflow-y-auto">
       {/* Header with close button */}
       <div className="p-4 border-b border-border flex items-center justify-between sticky top-0 bg-card z-10">
-        <h2 className="text-lg font-semibold">Contact Info</h2>
+        <h2 className="text-lg font-semibold">Contactinfo</h2>
         {onClose && (
           <button
             onClick={onClose}
             className="p-2 hover:bg-accent rounded-lg transition-colors"
-            title="Close"
+            title="Sluiten"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -83,7 +83,7 @@ export function UserInfo({ contact, onClose, isDiaryView = false }: UserInfoProp
           )}
           <h3 className="text-xl font-semibold">{contact.display_name || contact.username}</h3>
           <p className="text-sm text-muted-foreground">@{contact.username}</p>
-          <p className="text-xs text-muted-foreground capitalize mt-1">{contact.role} Account</p>
+          <p className="text-xs text-muted-foreground capitalize mt-1">{contact.role === 'parent' ? 'Ouderaccount' : 'Kindaccount'}</p>
         </div>
 
         {contact.bio && (
@@ -95,17 +95,17 @@ export function UserInfo({ contact, onClose, isDiaryView = false }: UserInfoProp
 
         {contact.restricted && (
           <div className="p-4 rounded-lg bg-destructive/10 border border-destructive">
-            <p className="text-sm text-destructive font-medium">⚠️ Account Restricted</p>
+            <p className="text-sm text-destructive font-medium">⚠️ Account beperkt</p>
             <p className="text-xs text-destructive/80 mt-1">
-              This user has been restricted from sending messages.
+              Deze gebruiker mag geen berichten meer versturen.
             </p>
           </div>
         )}
 
         <div className="space-y-3 pt-4 border-t border-border">
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Account Type</p>
-            <p className="text-sm font-medium capitalize">{contact.role}</p>
+            <p className="text-xs text-muted-foreground mb-1">Accounttype</p>
+            <p className="text-sm font-medium">{contact.role === 'parent' ? 'Ouder' : 'Kind'}</p>
           </div>
         </div>
       </div>

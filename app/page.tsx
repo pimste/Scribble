@@ -1,5 +1,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Scribble - Veilige chat voor kinderen',
+  description: 'Waar vriendschappen veilig groeien',
+}
 
 export default function Home() {
   return (
@@ -19,7 +25,7 @@ export default function Home() {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground">
-            Where friendships grow safely! 🌟
+            Waar vriendschappen veilig groeien! 🌟
           </p>
         </div>
         
@@ -28,13 +34,13 @@ export default function Home() {
             href="/login"
             className="block w-full py-3 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
           >
-            Login
+            Inloggen
           </Link>
           <Link
             href="/register"
             className="block w-full py-3 px-4 rounded-lg border border-border hover:bg-accent transition-colors font-medium"
           >
-            Sign Up
+            Account aanmaken
           </Link>
         </div>
       </div>

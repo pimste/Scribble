@@ -1,18 +1,20 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/theme-toggle'
 
-export default function LoginPage() {
+function LoginForm() {
   const [identifier, setIdentifier] = useState('') // email or username
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect')
   const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -33,7 +35,7 @@ export default function LoginPage() {
           .single()
 
         if (profileError || !profile) {
-          throw new Error('Invalid username or password')
+          throw new Error('Ongeldige gebruikersnaam of wachtwoord')
         }
 
         loginEmail = profile.auth_email
@@ -47,11 +49,12 @@ export default function LoginPage() {
       if (error) throw error
 
       if (data.user) {
-        router.push('/chat')
+        const destination = redirectTo && redirectTo.startsWith('/') ? redirectTo : '/chat'
+        router.push(destination)
         router.refresh()
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to login')
+      setError(err.message || 'Inloggen mislukt')
     } finally {
       setLoading(false)
     }
@@ -76,8 +79,8 @@ export default function LoginPage() {
             <h1 className="text-4xl font-bold text-black dark:text-white">SCRIBBLE</h1>
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Welcome back</h2>
-            <p className="mt-2 text-muted-foreground">Sign in to your account</p>
+            <h2 className="text-2xl font-bold">Welkom terug</h2>
+            <p className="mt-2 text-muted-foreground">Log in op je account</p>
           </div>
         </div>
 
@@ -91,7 +94,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="identifier" className="block text-sm font-medium mb-2">
-                Email or Username
+                E-mail of gebruikersnaam
               </label>
               <input
                 id="identifier"
@@ -100,16 +103,16 @@ export default function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="you@example.com or username"
+                placeholder="jan@voorbeeld.nl of gebruikersnaam"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Parents use email, children use username
+                Ouders gebruiken e-mail, kinderen gebruiken gebruikersnaam
               </p>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
+                Wachtwoord
               </label>
               <input
                 id="password"
@@ -128,17 +131,29 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Bezig met inloggen...' : 'Inloggen'}
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Nog geen account?{' '}
             <Link href="/register" className="text-primary hover:underline font-medium">
-              Sign up
+              Account aanmaken
             </Link>
           </p>
         </form>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10">
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

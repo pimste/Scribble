@@ -242,7 +242,7 @@ export default function ParentPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add child')
+        throw new Error(data.error || 'Kind toevoegen mislukt')
       }
 
       setAddChildSuccess(`Child account created. Share username "${data.username}" and the password with your child so they can log in.`)
@@ -260,7 +260,7 @@ export default function ParentPage() {
 
       setShowAddChild(false)
     } catch (err: any) {
-      setAddChildError(err.message || 'Failed to add child')
+      setAddChildError(err.message || 'Kind toevoegen mislukt')
     } finally {
       setAddChildLoading(false)
     }
@@ -268,7 +268,7 @@ export default function ParentPage() {
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
-    return date.toLocaleString('en-US', { 
+    return date.toLocaleString('nl-NL', { 
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -282,7 +282,7 @@ export default function ParentPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
       </div>
     )
   }
@@ -303,9 +303,9 @@ export default function ParentPage() {
                 </svg>
               </Link>
               <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Parental Controls</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Ouderlijk toezicht</h1>
                 <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                  Monitor and manage your children's chat activity
+                  Monitor en beheer de chatactiviteit van je kinderen
                 </p>
               </div>
             </div>
@@ -324,23 +324,23 @@ export default function ParentPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold">No Linked Children</h3>
+              <h3 className="text-xl font-semibold">Geen gekoppelde kinderen</h3>
               <p className="text-muted-foreground">
-                Add your first child to get started. You can monitor their chats and manage their contacts from here.
+                Voeg je eerste kind toe om te beginnen. Je kunt hun chats monitoren en contacten beheren vanaf hier.
               </p>
               <div className="pt-4">
                 <button
                   onClick={() => setShowAddChild(true)}
                   className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
                 >
-                  Add Child
+                  Kind toevoegen
                 </button>
               </div>
             </div>
           </div>
         ) : children.length === 0 && showAddChild ? (
           <div className="bg-card border border-border rounded-xl p-6 md:p-8 max-w-md mx-auto">
-            <h3 className="text-xl font-semibold mb-4">Add Your First Child</h3>
+            <h3 className="text-xl font-semibold mb-4">Voeg je eerste kind toe</h3>
             <form onSubmit={handleAddChild} className="space-y-4">
               {addChildError && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
@@ -353,7 +353,7 @@ export default function ParentPage() {
                 </div>
               )}
               <div>
-                <label htmlFor="displayName" className="block text-sm font-medium mb-2">Child&apos;s Name</label>
+                <label htmlFor="displayName" className="block text-sm font-medium mb-2">Naam van kind</label>
                 <input
                   id="displayName"
                   type="text"
@@ -364,7 +364,7 @@ export default function ParentPage() {
                 />
               </div>
               <div>
-                <label htmlFor="username" className="block text-sm font-medium mb-2">Username</label>
+                <label htmlFor="username" className="block text-sm font-medium mb-2">Gebruikersnaam</label>
                 <input
                   id="username"
                   type="text"
@@ -377,7 +377,7 @@ export default function ParentPage() {
                 <p className="text-xs text-muted-foreground mt-1">Your child will use this to log in</p>
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
+                <label htmlFor="password" className="block text-sm font-medium mb-2">Wachtwoord</label>
                 <input
                   id="password"
                   type="password"
@@ -388,10 +388,10 @@ export default function ParentPage() {
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="••••••••"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Share this with your child so they can log in</p>
+                <p className="text-xs text-muted-foreground mt-1">Deel dit met je kind zodat ze kunnen inloggen</p>
               </div>
               <div>
-                <label htmlFor="birthDate" className="block text-sm font-medium mb-2">Birth Date</label>
+                <label htmlFor="birthDate" className="block text-sm font-medium mb-2">Geboortedatum</label>
                 <input
                   id="birthDate"
                   type="date"
@@ -406,14 +406,14 @@ export default function ParentPage() {
                   onClick={() => { setShowAddChild(false); setAddChildError(''); setAddChildSuccess(''); }}
                   className="flex-1 py-2 px-4 border border-border rounded-lg hover:bg-accent transition-colors"
                 >
-                  Cancel
+                  Annuleren
                 </button>
                 <button
                   type="submit"
                   disabled={addChildLoading}
                   className="flex-1 py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
                 >
-                  {addChildLoading ? 'Adding...' : 'Add Child'}
+                  {addChildLoading ? 'Toevoegen...' : 'Kind toevoegen'}
                 </button>
               </div>
             </form>
@@ -423,12 +423,12 @@ export default function ParentPage() {
             {/* Left Panel - Children List */}
             <div className="bg-card border border-border rounded-xl overflow-hidden h-fit md:h-auto">
               <div className="p-3 md:p-4 border-b border-border flex items-center justify-between gap-2">
-                <h2 className="text-sm md:text-base font-semibold">Linked Children</h2>
+                <h2 className="text-sm md:text-base font-semibold">Gekoppelde kinderen</h2>
                 <button
                   onClick={() => setShowAddChild(true)}
                   className="text-sm px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
                 >
-                  Add Child
+                  Kind toevoegen
                 </button>
               </div>
               <div className="divide-y divide-border">
@@ -453,13 +453,13 @@ export default function ParentPage() {
                         <div>
                           <p className="font-medium">{child.username}</p>
                           <p className="text-xs text-muted-foreground">
-                            {child.contacts.length} contact{child.contacts.length !== 1 ? 's' : ''}
+                            {child.contacts.length} contact{child.contacts.length !== 1 ? 'en' : ''}
                           </p>
                         </div>
                       </div>
                       {child.restricted && (
                         <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive">
-                          Restricted
+                          Beperkt
                         </span>
                       )}
                     </div>
@@ -473,15 +473,15 @@ export default function ParentPage() {
               {selectedChild ? (
                 <>
                   <div className="p-3 md:p-4 border-b border-border">
-                    <h2 className="text-sm md:text-base font-semibold">{selectedChild.username}'s Contacts</h2>
+                    <h2 className="text-sm md:text-base font-semibold">Contacten van {selectedChild.username}</h2>
                   </div>
                   
                   <div className="p-3 md:p-4 space-y-4">
                     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                       <div>
-                        <p className="text-sm font-medium">Messaging Status</p>
+                        <p className="text-sm font-medium">Berichtenstatus</p>
                         <p className="text-xs text-muted-foreground">
-                          {selectedChild.restricted ? 'Restricted' : 'Active'}
+                          {selectedChild.restricted ? 'Beperkt' : 'Actief'}
                         </p>
                       </div>
                       <button
@@ -492,13 +492,13 @@ export default function ParentPage() {
                             : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
                         }`}
                       >
-                        {selectedChild.restricted ? 'Enable' : 'Restrict'}
+                        {selectedChild.restricted ? 'Inschakelen' : 'Beperken'}
                       </button>
                     </div>
 
                     {selectedChild.contacts.length === 0 ? (
                       <p className="text-center text-muted-foreground py-8">
-                        No contacts yet
+                        Nog geen contacten
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -511,7 +511,7 @@ export default function ParentPage() {
                             }`}
                           >
                             <p className="font-medium">{contact.username}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{contact.role}</p>
+                            <p className="text-xs text-muted-foreground">{contact.role === 'parent' ? 'Ouder' : 'Kind'}</p>
                           </button>
                         ))}
                       </div>
@@ -520,7 +520,7 @@ export default function ParentPage() {
                 </>
               ) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground p-6 text-center">
-                  Select a child to view their details
+                  Selecteer een kind om hun gegevens te bekijken
                 </div>
               )}
             </div>
@@ -530,14 +530,14 @@ export default function ParentPage() {
               {selectedContact && selectedChildId ? (
                 <>
                   <div className="p-3 md:p-4">
-                    <h2 className="text-sm md:text-base font-semibold mb-3">Conversation with {selectedContact.username}</h2>
+                    <h2 className="text-sm md:text-base font-semibold mb-3">Gesprek met {selectedContact.username}</h2>
                     
                     {messages.length === 0 ? (
                       <div className="text-center text-muted-foreground py-12">
                         <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
-                        <p>No conversation yet</p>
+                        <p>Nog geen gesprek</p>
                       </div>
                     ) : !conversationSafety ? (
                       <div className="text-center py-12">
@@ -545,7 +545,7 @@ export default function ParentPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0121 12c0 5.523-4.477 10-10 10S1 17.523 1 12 5.477 2 11 2c2.12 0 4.083.668 5.693 1.796m0 0l-3.182 3.182m0 0L12 5.966" />
                         </svg>
                         <p className="text-muted-foreground mb-4">
-                          <span className="font-semibold text-foreground">{messages.length}</span> message{messages.length !== 1 ? 's' : ''} in this conversation
+                          <span className="font-semibold text-foreground">{messages.length}</span> bericht{messages.length !== 1 ? 'en' : ''} in dit gesprek
                         </p>
                         <div className="flex flex-col gap-2 items-center">
                           <button
@@ -559,14 +559,14 @@ export default function ParentPage() {
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Analyzing All...
+                                Alles analyseren...
                               </>
                             ) : (
                               <>
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                 </svg>
-                                Analyze All Messages
+                                Alle berichten analyseren
                               </>
                             )}
                           </button>
@@ -582,21 +582,21 @@ export default function ParentPage() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                   </svg>
-                                  Checking New...
+                                  Nieuwe controleren...
                                 </>
                               ) : (
                                 <>
                                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                   </svg>
-                                  Check New Messages Only
+                                  Alleen nieuwe berichten controleren
                                 </>
                               )}
                             </button>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-3">
-                          Message content is private - only safety analysis will be shown
+                          Berichtinhoud is privé - alleen veiligheidsanalyse wordt getoond
                         </p>
                       </div>
                     ) : (
@@ -610,8 +610,8 @@ export default function ParentPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0121 12c0 5.523-4.477 10-10 10S1 17.523 1 12 5.477 2 11 2c2.12 0 4.083.668 5.693 1.796m0 0l-3.182 3.182m0 0L12 5.966" />
                                 </svg>
                                 <div className="flex-1">
-                                  <h3 className="text-lg font-bold text-green-700 mb-1">Conversation Safe</h3>
-                                  <p className="text-sm text-green-600">No concerns detected in this conversation.</p>
+                                  <h3 className="text-lg font-bold text-green-700 mb-1">Gesprek veilig</h3>
+                                  <p className="text-sm text-green-600">Geen zorgen gedetecteerd in dit gesprek.</p>
                                 </div>
                               </>
                             ) : (
@@ -620,8 +620,8 @@ export default function ParentPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                                 <div className="flex-1">
-                                  <h3 className="text-lg font-bold text-red-700 mb-1">Concerns Detected</h3>
-                                  <p className="text-sm text-red-600">Please review the concerns found in this conversation.</p>
+                                  <h3 className="text-lg font-bold text-red-700 mb-1">Zorgen gedetecteerd</h3>
+                                  <p className="text-sm text-red-600">Bekijk de zorgen die in dit gesprek zijn gevonden.</p>
                                 </div>
                               </>
                             )}
@@ -629,7 +629,7 @@ export default function ParentPage() {
                           
                           {conversationSafety.concerns.length > 0 && (
                             <div className="mb-3">
-                              <p className="text-xs font-semibold text-muted-foreground mb-2">Concerns Found:</p>
+                              <p className="text-xs font-semibold text-muted-foreground mb-2">Gevonden zorgen:</p>
                               <div className="flex flex-wrap gap-2">
                                 {conversationSafety.concerns.map((concern, idx) => (
                                   <span key={idx} className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-700 font-semibold capitalize text-sm">
@@ -641,7 +641,7 @@ export default function ParentPage() {
                           )}
                           
                           <div className="pt-3 border-t border-current/10">
-                            <p className="text-xs font-semibold text-muted-foreground mb-1">Analysis:</p>
+                            <p className="text-xs font-semibold text-muted-foreground mb-1">Analyse:</p>
                             <p className="text-sm italic">
                               {conversationSafety.explanation}
                             </p>
@@ -652,11 +652,11 @@ export default function ParentPage() {
                         <div className="mt-4 space-y-3">
                           <div className="p-3 bg-muted/50 rounded-lg text-center">
                             <p className="text-sm text-muted-foreground">
-                              <span className="font-semibold text-foreground">{conversationSafety.messageCount ?? messages.length}</span> message{(conversationSafety.messageCount ?? messages.length) !== 1 ? 's' : ''} analyzed
-                              {conversationSafety.analyzedNewOnly && <span className="text-emerald-600 font-semibold"> (new only)</span>}
+                              <span className="font-semibold text-foreground">{conversationSafety.messageCount ?? messages.length}</span> bericht{(conversationSafety.messageCount ?? messages.length) !== 1 ? 'en' : ''} geanalyseerd
+                              {conversationSafety.analyzedNewOnly && <span className="text-emerald-600 font-semibold"> (alleen nieuwe)</span>}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Message content is private - only safety analysis is shown
+                              Berichtinhoud is privé - alleen veiligheidsanalyse wordt getoond
                             </p>
                           </div>
                           <div className="flex flex-col gap-2">
@@ -671,14 +671,14 @@ export default function ParentPage() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                   </svg>
-                                  Re-analyzing All...
+                                  Opnieuw alles analyseren...
                                 </>
                               ) : (
                                 <>
                                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                   </svg>
-                                  Re-analyze All Messages
+                                  Alle berichten opnieuw analyseren
                                 </>
                               )}
                             </button>
@@ -693,14 +693,14 @@ export default function ParentPage() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                   </svg>
-                                  Checking New...
+                                  Nieuwe controleren...
                                 </>
                               ) : (
                                 <>
                                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                   </svg>
-                                  Check New Messages Only
+                                  Alleen nieuwe berichten controleren
                                 </>
                               )}
                             </button>
@@ -712,7 +712,7 @@ export default function ParentPage() {
                 </>
               ) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground p-6 text-center">
-                  Select a contact to view messages
+                  Selecteer een contact om berichten te bekijken
                 </div>
               )}
             </div>
@@ -724,7 +724,7 @@ export default function ParentPage() {
       {showAddChild && children.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full shadow-xl">
-            <h3 className="text-xl font-semibold mb-4">Add Child</h3>
+            <h3 className="text-xl font-semibold mb-4">Kind toevoegen</h3>
             <form onSubmit={handleAddChild} className="space-y-4">
               {addChildError && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
@@ -737,7 +737,7 @@ export default function ParentPage() {
                 </div>
               )}
               <div>
-                <label htmlFor="modal-displayName" className="block text-sm font-medium mb-2">Child&apos;s Name</label>
+                <label htmlFor="modal-displayName" className="block text-sm font-medium mb-2">Naam van kind</label>
                 <input
                   id="modal-displayName"
                   type="text"
@@ -748,7 +748,7 @@ export default function ParentPage() {
                 />
               </div>
               <div>
-                <label htmlFor="modal-username" className="block text-sm font-medium mb-2">Username</label>
+                <label htmlFor="modal-username" className="block text-sm font-medium mb-2">Gebruikersnaam</label>
                 <input
                   id="modal-username"
                   type="text"
@@ -761,7 +761,7 @@ export default function ParentPage() {
                 <p className="text-xs text-muted-foreground mt-1">Your child will use this to log in</p>
               </div>
               <div>
-                <label htmlFor="modal-password" className="block text-sm font-medium mb-2">Password</label>
+                <label htmlFor="modal-password" className="block text-sm font-medium mb-2">Wachtwoord</label>
                 <input
                   id="modal-password"
                   type="password"
@@ -772,7 +772,7 @@ export default function ParentPage() {
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="••••••••"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Share this with your child so they can log in</p>
+                <p className="text-xs text-muted-foreground mt-1">Deel dit met je kind zodat ze kunnen inloggen</p>
               </div>
               <div>
                 <label htmlFor="modal-birthDate" className="block text-sm font-medium mb-2">Birth Date</label>
@@ -790,14 +790,14 @@ export default function ParentPage() {
                   onClick={() => { setShowAddChild(false); setAddChildError(''); setAddChildSuccess(''); }}
                   className="flex-1 py-2 px-4 border border-border rounded-lg hover:bg-accent transition-colors"
                 >
-                  Cancel
+                  Annuleren
                 </button>
                 <button
                   type="submit"
                   disabled={addChildLoading}
                   className="flex-1 py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
                 >
-                  {addChildLoading ? 'Adding...' : 'Add Child'}
+                  {addChildLoading ? 'Toevoegen...' : 'Kind toevoegen'}
                 </button>
               </div>
             </form>

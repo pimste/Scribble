@@ -86,10 +86,10 @@ export default function SettingsPage() {
         accent_color: accentColor,
       })
       
-      alert('Profile updated successfully!')
+      alert('Profiel succesvol bijgewerkt!')
     } catch (error) {
       console.error('Error saving profile:', error)
-      alert('Failed to save profile. Please make sure you have run the database migration.')
+      alert('Profiel opslaan mislukt. Controleer of je de databasemigratie hebt uitgevoerd.')
     } finally {
       setSaving(false)
     }
@@ -117,13 +117,13 @@ export default function SettingsPage() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file')
+      alert('Selecteer een afbeeldingsbestand')
       return
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB')
+      alert('Afbeelding moet kleiner zijn dan 5MB')
       return
     }
 
@@ -138,7 +138,7 @@ export default function SettingsPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to upload image')
+        throw new Error('Afbeelding uploaden mislukt')
       }
 
       const { url } = await response.json()
@@ -149,10 +149,10 @@ export default function SettingsPage() {
         profile_picture_url: url,
       })
 
-      alert('Profile picture updated successfully!')
+      alert('Profielfoto succesvol bijgewerkt!')
     } catch (error) {
       console.error('Error uploading profile picture:', error)
-      alert('Failed to upload profile picture')
+      alert('Profielfoto uploaden mislukt')
     } finally {
       setUploading(false)
     }
@@ -161,7 +161,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
       </div>
     )
   }
@@ -172,8 +172,8 @@ export default function SettingsPage() {
       <div className="border-b border-border bg-card">
         <div className="container max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold">Settings</h1>
-            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Manage your account and profile information</p>
+            <h1 className="text-xl md:text-2xl font-bold">Instellingen</h1>
+            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Beheer je account en profielinformatie</p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -181,7 +181,7 @@ export default function SettingsPage() {
               href="/chat"
               className="hidden md:flex px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
             >
-              Back to Chat
+              Terug naar chat
             </Link>
           </div>
         </div>
@@ -237,7 +237,7 @@ export default function SettingsPage() {
                 {/* Username & Info */}
                 <div className="flex-1 md:flex-none text-left md:text-center space-y-2 md:space-y-4">
                   <div>
-                    <h2 className="text-lg md:text-xl font-bold">{profile?.username || 'Unknown User'}</h2>
+                    <h2 className="text-lg md:text-xl font-bold">{profile?.username || 'Onbekende gebruiker'}</h2>
                     <p className="text-xs md:text-sm text-muted-foreground">@{profile?.username || ''}</p>
                   </div>
 
@@ -253,13 +253,13 @@ export default function SettingsPage() {
                       ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' 
                       : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
                   }`}>
-                    {profile?.role === 'parent' ? '👨‍👧 Parent' : '👶 Child'}
+                    {profile?.role === 'parent' ? '👨‍👧 Ouder' : '👶 Kind'}
                   </div>
 
                   {/* About - Hidden on mobile */}
                   <div className="hidden md:block w-full pt-4 border-t border-border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-2">ABOUT</p>
-                    <p className="text-sm text-muted-foreground">{profile?.bio || 'No bio available'}</p>
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">OVER</p>
+                    <p className="text-sm text-muted-foreground">{profile?.bio || 'Geen bio beschikbaar'}</p>
                   </div>
                 </div>
               </div>
@@ -283,7 +283,7 @@ export default function SettingsPage() {
                     <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span className="text-sm md:text-base">Profile</span>
+                    <span className="text-sm md:text-base">Profiel</span>
                   </div>
                 </button>
                 <button
@@ -313,7 +313,7 @@ export default function SettingsPage() {
                     <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                     </svg>
-                    <span className="text-sm md:text-base">Theme</span>
+                    <span className="text-sm md:text-base">Thema</span>
                   </div>
                 </button>
               </div>
@@ -327,28 +327,28 @@ export default function SettingsPage() {
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        Basic Information
+                        Basisgegevens
                       </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium mb-2">Username</label>
+                          <label className="block text-sm font-medium mb-2">Gebruikersnaam</label>
                           <input
                             type="text"
                             value={profile?.username || ''}
                             disabled
                             className="w-full px-3 py-2 border border-input rounded-lg bg-muted text-muted-foreground cursor-not-allowed"
-                            placeholder="Enter username"
+                            placeholder="Voer gebruikersnaam in"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-2">Display Name</label>
+                          <label className="block text-sm font-medium mb-2">Weergavenaam</label>
                           <input
                             type="text"
                             value={displayName}
                             onChange={(e) => setDisplayName(e.target.value)}
                             className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                            placeholder="Enter display name"
+                            placeholder="Voer weergavenaam in"
                           />
                         </div>
                       </div>
@@ -360,7 +360,7 @@ export default function SettingsPage() {
                           value={bio}
                           onChange={(e) => setBio(e.target.value)}
                           className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-                          placeholder="Tell us about yourself..."
+                          placeholder="Vertel iets over jezelf..."
                         />
                       </div>
 
@@ -373,13 +373,13 @@ export default function SettingsPage() {
                             className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                           >
                             <option value="online">🟢 Online</option>
-                            <option value="dnd">🔴 Do Not Disturb</option>
-                            <option value="away">🟡 Away</option>
-                            <option value="invisible">⚫ Invisible</option>
+                            <option value="dnd">🔴 Niet storen</option>
+                            <option value="away">🟡 Afwezig</option>
+                            <option value="invisible">⚫ Onzichtbaar</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-2">Birth Date</label>
+                          <label className="block text-sm font-medium mb-2">Geboortedatum</label>
                           <input
                             type="date"
                             value={birthDate}
@@ -400,14 +400,14 @@ export default function SettingsPage() {
                         }}
                         className="px-6 py-2 border border-border rounded-lg hover:bg-accent transition-colors font-medium"
                       >
-                        Cancel
+                        Annuleren
                       </button>
                       <button 
                         onClick={handleSaveProfile}
                         disabled={saving}
                         className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? 'Opslaan...' : 'Wijzigingen opslaan'}
                       </button>
                     </div>
                   </div>
@@ -416,24 +416,24 @@ export default function SettingsPage() {
                 {activeTab === 'account' && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-4">Account Information</h3>
+                      <h3 className="text-lg font-semibold mb-4">Accountgegevens</h3>
                       
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium mb-2">Email</label>
+                          <label className="block text-sm font-medium mb-2">E-mail</label>
                           <input
                             type="email"
-                            value={profile?.email || 'No email (Child account)'}
+                            value={profile?.email || 'Geen e-mail (Kindaccount)'}
                             disabled
                             className="w-full px-3 py-2 border border-input rounded-lg bg-muted text-muted-foreground cursor-not-allowed"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2">Account Type</label>
+                          <label className="block text-sm font-medium mb-2">Accounttype</label>
                           <input
                             type="text"
-                            value={profile?.role === 'parent' ? 'Parent Account' : 'Child Account'}
+                            value={profile?.role === 'parent' ? 'Ouderaccount' : 'Kindaccount'}
                             disabled
                             className="w-full px-3 py-2 border border-input rounded-lg bg-muted text-muted-foreground cursor-not-allowed capitalize"
                           />
@@ -442,7 +442,7 @@ export default function SettingsPage() {
                         {profile?.role === 'child' && profile.parent_id && (
                           <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                             <p className="text-sm text-blue-600 dark:text-blue-400">
-                              <span className="font-semibold">👨‍👧 Linked to Parent:</span> This account is supervised by a parent account
+                              <span className="font-semibold">👨‍👧 Gekoppeld aan ouder:</span> Dit account wordt beheerd door een ouderaccount
                             </p>
                           </div>
                         )}
@@ -450,14 +450,14 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="border-t border-border pt-6">
-                      <h3 className="text-lg font-semibold mb-4 text-destructive">Danger Zone</h3>
+                      <h3 className="text-lg font-semibold mb-4 text-destructive">Dangerzone</h3>
                       
                       <div className="space-y-3">
                         <button className="w-full px-4 py-3 border border-destructive/50 rounded-lg hover:bg-destructive/10 transition-colors text-left">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-destructive">Change Password</p>
-                              <p className="text-sm text-muted-foreground">Update your account password</p>
+                              <p className="font-medium text-destructive">Wachtwoord wijzigen</p>
+                              <p className="text-sm text-muted-foreground">Wijzig je accountwachtwoord</p>
                             </div>
                             <svg className="w-5 h-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -468,8 +468,8 @@ export default function SettingsPage() {
                         <button className="w-full px-4 py-3 border border-destructive/50 rounded-lg hover:bg-destructive/10 transition-colors text-left">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-destructive">Delete Account</p>
-                              <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
+                              <p className="font-medium text-destructive">Account verwijderen</p>
+                              <p className="text-sm text-muted-foreground">Verwijder permanent je account en alle gegevens</p>
                             </div>
                             <svg className="w-5 h-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -484,8 +484,8 @@ export default function SettingsPage() {
                 {activeTab === 'appearance' && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-4">Theme</h3>
-                      <p className="text-sm text-muted-foreground mb-6">Choose how Scribble looks on your device</p>
+                      <h3 className="text-lg font-semibold mb-4">Thema</h3>
+                      <p className="text-sm text-muted-foreground mb-6">Kies hoe Scribble eruitziet op je apparaat</p>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <button 
@@ -499,8 +499,8 @@ export default function SettingsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                           </div>
-                          <p className="font-medium">Light</p>
-                          {theme === 'light' && <p className="text-xs text-primary mt-1">✓ Active</p>}
+                          <p className="font-medium">Licht</p>
+                          {theme === 'light' && <p className="text-xs text-primary mt-1">✓ Actief</p>}
                         </button>
                         <button 
                           onClick={() => setTheme('dark')}
@@ -513,8 +513,8 @@ export default function SettingsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                             </svg>
                           </div>
-                          <p className="font-medium">Dark</p>
-                          {theme === 'dark' && <p className="text-xs text-primary mt-1">✓ Active</p>}
+                          <p className="font-medium">Donker</p>
+                          {theme === 'dark' && <p className="text-xs text-primary mt-1">✓ Actief</p>}
                         </button>
                         <button 
                           onClick={() => setTheme('system')}
@@ -527,24 +527,24 @@ export default function SettingsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                           </div>
-                          <p className="font-medium">System</p>
-                          {theme === 'system' && <p className="text-xs text-primary mt-1">✓ Active</p>}
+                          <p className="font-medium">Systeem</p>
+                          {theme === 'system' && <p className="text-xs text-primary mt-1">✓ Actief</p>}
                         </button>
                       </div>
                     </div>
 
                     <div className="border-t border-border pt-6">
-                      <h3 className="text-lg font-semibold mb-4">Accent Color</h3>
-                      <p className="text-sm text-muted-foreground mb-6">Choose your preferred accent color (changes apply instantly)</p>
+                      <h3 className="text-lg font-semibold mb-4">Accentkleur</h3>
+                      <p className="text-sm text-muted-foreground mb-6">Kies je voorkeursaccentkleur (wijzigingen worden direct toegepast)</p>
                       <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
                         {[
-                          { value: 'blue' as const, color: 'bg-blue-500', name: 'Blue' },
-                          { value: 'purple' as const, color: 'bg-purple-500', name: 'Purple' },
-                          { value: 'pink' as const, color: 'bg-pink-500', name: 'Pink' },
-                          { value: 'red' as const, color: 'bg-red-500', name: 'Red' },
-                          { value: 'orange' as const, color: 'bg-orange-500', name: 'Orange' },
-                          { value: 'yellow' as const, color: 'bg-yellow-500', name: 'Yellow' },
-                          { value: 'green' as const, color: 'bg-green-500', name: 'Green' },
+                          { value: 'blue' as const, color: 'bg-blue-500', name: 'Blauw' },
+                          { value: 'purple' as const, color: 'bg-purple-500', name: 'Paars' },
+                          { value: 'pink' as const, color: 'bg-pink-500', name: 'Roze' },
+                          { value: 'red' as const, color: 'bg-red-500', name: 'Rood' },
+                          { value: 'orange' as const, color: 'bg-orange-500', name: 'Oranje' },
+                          { value: 'yellow' as const, color: 'bg-yellow-500', name: 'Geel' },
+                          { value: 'green' as const, color: 'bg-green-500', name: 'Groen' },
                           { value: 'teal' as const, color: 'bg-teal-500', name: 'Teal' }
                         ].map((item) => (
                           <button 
@@ -566,7 +566,7 @@ export default function SettingsPage() {
                         ))}
                       </div>
                       <p className="text-xs text-muted-foreground mt-4">
-                        💡 Your accent color preference is saved automatically
+                        💡 Je accentkleurvoorkeur wordt automatisch opgeslagen
                       </p>
                     </div>
                   </div>

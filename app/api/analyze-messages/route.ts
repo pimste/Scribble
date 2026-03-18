@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Niet geautoriseerd' }, { status: 401 })
     }
 
     // Verify user is a parent
@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!profile || profile.role !== 'parent') {
-      return NextResponse.json({ error: 'Forbidden - Parent access only' }, { status: 403 })
+      return NextResponse.json({ error: 'Verboden - Alleen toegang voor ouders' }, { status: 403 })
     }
 
     const body: AnalysisRequest = await request.json()
     const { childId, contactId, sinceTimestamp } = body
 
     if (!childId || !contactId) {
-      return NextResponse.json({ error: 'Missing childId or contactId' }, { status: 400 })
+      return NextResponse.json({ error: 'childId of contactId ontbreekt' }, { status: 400 })
     }
 
     // Verify parent has access to this child
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!child) {
-      return NextResponse.json({ error: 'Forbidden - Not your child' }, { status: 403 })
+      return NextResponse.json({ error: 'Verboden - Niet jouw kind' }, { status: 403 })
     }
 
     // Fetch messages in the conversation (optionally filtered by timestamp)
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         success: true,
         isSafe: true,
         concerns: [],
-        message: sinceTimestamp ? 'No new messages to analyze' : 'No messages to analyze',
+        message: sinceTimestamp ? 'Geen nieuwe berichten om te analyseren' : 'Geen berichten om te analyseren',
         messageCount: 0,
         analyzedNewOnly: !!sinceTimestamp,
       })
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in analyze-messages API:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Interne serverfout' },
       { status: 500 }
     )
   }
@@ -143,15 +143,16 @@ IMPORTANT:
 - Normal greetings, friendly conversations, and casual chat in any language are SAFE.
 - GIF messages will appear as "[Shared a GIF: description]" - evaluate the GIF description for appropriateness.
 - GIFs are filtered to G-rated content only, so they are generally safe unless the description suggests otherwise.
+- Respond in DUTCH. The "explanation" and "concerns" values must be in Dutch.
 
 Respond ONLY with a JSON object in this exact format:
 {
   "isSafe": true/false,
-  "concerns": ["bullying", "swearing", "unsafe"],
-  "explanation": "Brief explanation of overall conversation safety"
+  "concerns": ["pesten", "schelden", "onveilig"],
+  "explanation": "Korte uitleg van de algehele gespreksveiligheid in het Nederlands"
 }
 
-The "concerns" array should only include the types of concerns found. If the conversation is safe, return an empty array.
+The "concerns" array should only include the types of concerns found (in Dutch). If the conversation is safe, return an empty array.
 Be strict but fair. Context matters - friendly banter between friends is different from actual bullying.`
 
   const response = await openai.chat.completions.create({
@@ -179,7 +180,7 @@ Be strict but fair. Context matters - friendly banter between friends is differe
     return {
       isSafe: true,
       concerns: [],
-      explanation: 'Analysis parsing error - defaulting to safe',
+      explanation: 'Analysefout - standaard veilig',
     }
   }
 }

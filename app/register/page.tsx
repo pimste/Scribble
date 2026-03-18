@@ -35,13 +35,13 @@ export default function RegisterPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to send verification code')
+        throw new Error('Verificatiecode versturen mislukt')
       }
 
       setCodeSent(true)
       setStep('verify')
     } catch (err: any) {
-      setError(err.message || 'Failed to send verification code')
+      setError(err.message || 'Verificatiecode versturen mislukt')
     } finally {
       setLoading(false)
     }
@@ -60,7 +60,7 @@ export default function RegisterPage() {
 
       if (!verifyResponse.ok) {
         const data = await verifyResponse.json()
-        throw new Error(data.error || 'Invalid verification code')
+        throw new Error(data.error || 'Ongeldige verificatiecode')
       }
 
       // Create Supabase account
@@ -77,7 +77,7 @@ export default function RegisterPage() {
       })
 
       if (authError) throw authError
-      if (!authData.user) throw new Error('Failed to create user')
+      if (!authData.user) throw new Error('Aanmaken van gebruiker mislukt')
 
       // Create profile
       const { error: profileError } = await supabase
@@ -98,7 +98,7 @@ export default function RegisterPage() {
       router.push('/chat')
       router.refresh()
     } catch (err: any) {
-      setError(err.message || 'Failed to create account')
+      setError(err.message || 'Account aanmaken mislukt')
     } finally {
       setLoading(false)
     }
@@ -123,8 +123,8 @@ export default function RegisterPage() {
             <h1 className="text-4xl font-bold text-black dark:text-white">SCRIBBLE</h1>
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Create Account</h2>
-            <p className="mt-2 text-muted-foreground">Join Scribble today</p>
+            <h2 className="text-2xl font-bold">Account aanmaken</h2>
+            <p className="mt-2 text-muted-foreground">Word vandaag lid van Scribble</p>
           </div>
         </div>
 
@@ -132,9 +132,9 @@ export default function RegisterPage() {
         {step === 'role' && (
           <div className="bg-card p-8 rounded-xl border border-border shadow-lg space-y-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2">Create Parent Account</h2>
+              <h2 className="text-xl font-semibold mb-2">Ouderaccount aanmaken</h2>
               <p className="text-sm text-muted-foreground">
-                Parents can add children from Parental Controls after signing up.
+                Ouders kunnen na aanmelding kinderen toevoegen via Ouderlijk toezicht.
               </p>
             </div>
 
@@ -150,9 +150,9 @@ export default function RegisterPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">Parent Account</h3>
+                    <h3 className="font-semibold text-lg">Ouderaccount</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Requires email verification. Add and manage your children from Parental Controls.
+                      Vereist e-mailverificatie. Voeg kinderen toe en beheer ze via Ouderlijk toezicht.
                     </p>
                   </div>
                 </div>
@@ -160,9 +160,9 @@ export default function RegisterPage() {
             </div>
 
             <p className="text-center text-sm text-muted-foreground pt-4">
-              Already have an account?{' '}
+              Heb je al een account?{' '}
               <Link href="/login" className="text-primary hover:underline font-medium">
-                Sign in
+                Inloggen
               </Link>
             </p>
           </div>
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back
+                Terug
               </button>
             </div>
 
@@ -193,7 +193,7 @@ export default function RegisterPage() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="username" className="block text-sm font-medium mb-2">
-                  Username
+                  Gebruikersnaam
                 </label>
                 <input
                   id="username"
@@ -208,7 +208,7 @@ export default function RegisterPage() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-2">
-                  Email
+                  E-mail
                 </label>
                 <input
                   id="email"
@@ -220,13 +220,13 @@ export default function RegisterPage() {
                   placeholder="you@example.com"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  We'll send a verification code to this email
+                  We sturen een verificatiecode naar dit e-mailadres
                 </p>
               </div>
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium mb-2">
-                  Password
+                  Wachtwoord
                 </label>
                 <input
                   id="password"
@@ -246,7 +246,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
             >
-              {loading ? 'Sending code...' : 'Send Verification Code'}
+              {loading ? 'Code versturen...' : 'Verificatiecode versturen'}
             </button>
           </form>
         )}
@@ -263,13 +263,13 @@ export default function RegisterPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back
+                Terug
               </button>
             </div>
 
             {codeSent && (
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500 text-green-600 dark:text-green-400 text-sm">
-                ✓ Verification code sent to {email}
+                ✓ Verificatiecode verstuurd naar {email}
               </div>
             )}
 
@@ -281,7 +281,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="verificationCode" className="block text-sm font-medium mb-2">
-                Verification Code
+                Verificatiecode
               </label>
               <input
                 id="verificationCode"
@@ -294,7 +294,7 @@ export default function RegisterPage() {
                 maxLength={6}
               />
               <p className="text-xs text-muted-foreground mt-2 text-center">
-                Enter the 6-digit code sent to your email
+                Voer de 6-cijferige code in die naar je e-mail is verstuurd
               </p>
             </div>
 
@@ -303,7 +303,7 @@ export default function RegisterPage() {
               disabled={loading || verificationCode.length !== 6}
               className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
             >
-              {loading ? 'Verifying...' : 'Verify & Create Account'}
+              {loading ? 'Verifiëren...' : 'Verifiëren en account aanmaken'}
             </button>
 
             <button
@@ -312,7 +312,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              Didn't receive it? Resend code
+              Niet ontvangen? Code opnieuw versturen
             </button>
           </form>
         )}

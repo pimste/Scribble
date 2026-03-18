@@ -32,14 +32,14 @@ export function Sidebar({ contacts, selectedContactId, onSelectContact, currentU
             </svg>
           </div>
           <div>
-            <p className="font-medium">Diary</p>
-            <p className="text-xs text-muted-foreground">Notes and saved messages</p>
+            <p className="font-medium">Dagboek</p>
+            <p className="text-xs text-muted-foreground">Notities en opgeslagen berichten</p>
           </div>
         </button>
 
         {contacts.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
-            No contacts yet. Use an invite code to connect!
+            Nog geen contacten. Gebruik een uitnodigingscode om te verbinden!
           </div>
         ) : (
           contacts.filter((c) => c.id !== currentUserId).map((contact) => (
@@ -89,12 +89,12 @@ export function Sidebar({ contacts, selectedContactId, onSelectContact, currentU
                   </div>
                   <div>
                     <p className="font-medium">{contact.username}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{contact.role}</p>
+                    <p className="text-xs text-muted-foreground">{contact.role === 'parent' ? 'Ouder' : 'Kind'}</p>
                   </div>
                 </div>
                 {contact.restricted && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive">
-                    Restricted
+                    <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive">
+                    Beperkt
                   </span>
                 )}
               </div>

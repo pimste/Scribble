@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Niet geautoriseerd' }, { status: 401 })
     }
 
     // Get the file from the request
@@ -17,17 +17,17 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
     
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+      return NextResponse.json({ error: 'Geen bestand opgegeven' }, { status: 400 })
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
+      return NextResponse.json({ error: 'Bestand moet een afbeelding zijn' }, { status: 400 })
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 })
+      return NextResponse.json({ error: 'Bestandsgrootte moet kleiner zijn dan 5MB' }, { status: 400 })
     }
 
     // Upload to Vercel Blob
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Error updating profile:', updateError)
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+      return NextResponse.json({ error: 'Profiel bijwerken mislukt' }, { status: 500 })
     }
 
     return NextResponse.json({ url: blob.url })

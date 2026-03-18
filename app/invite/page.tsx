@@ -1,29 +1,35 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Profile } from '@/types'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { MobileNavigation } from '@/components/MobileNavigation'
 import Link from 'next/link'
+import { QRCodeSVG } from 'qrcode.react'
 
-export default function InvitePage() {
+function InvitePageContent() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showQrModal, setShowQrModal] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  const codeFromUrl = searchParams.get('code')
 
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        router.push('/login')
+        const returnUrl = codeFromUrl ? `/invite?code=${encodeURIComponent(codeFromUrl)}` : '/invite'
+        router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`)
         return
       }
 
@@ -39,7 +45,13 @@ export default function InvitePage() {
     }
 
     checkAuth()
-  }, [router, supabase])
+  }, [router, supabase, codeFromUrl])
+
+  useEffect(() => {
+    if (codeFromUrl && profile) {
+      setInviteCode(codeFromUrl.trim())
+    }
+  }, [codeFromUrl, profile])
 
   const handleCopyCode = () => {
     if (profile?.invite_code) {
@@ -66,11 +78,11 @@ export default function InvitePage() {
         .single()
 
       if (findError || !targetProfile) {
-        throw new Error('Invalid invite code')
+        throw new Error('Ongeldige uitnodigingscode')
       }
 
       if (targetProfile.id === profile.id) {
-        throw new Error('You cannot add yourself as a contact')
+        throw new Error('Je kunt jezelf niet als contact toevoegen')
       }
 
       // Check if contact already exists
@@ -81,7 +93,7 @@ export default function InvitePage() {
         .single()
 
       if (existingContact) {
-        throw new Error('This contact already exists')
+        throw new Error('Dit contact bestaat al')
       }
 
       // Create contact
@@ -94,14 +106,14 @@ export default function InvitePage() {
 
       if (insertError) throw insertError
 
-      setSuccess('Contact added successfully!')
+      setSuccess('Contact succesvol toegevoegd!')
       setInviteCode('')
       
       setTimeout(() => {
         router.push('/chat')
       }, 1500)
     } catch (err: any) {
-      setError(err.message || 'Failed to add contact')
+      setError(err.message || 'Contact toevoegen mislukt')
     } finally {
       setLoading(false)
     }
@@ -110,7 +122,7 @@ export default function InvitePage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
       </div>
     )
   }
@@ -131,9 +143,9 @@ export default function InvitePage() {
                 </svg>
               </Link>
               <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Invite Friends</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Vrienden uitnodigen</h1>
                 <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
-                  Share your code to connect with friends
+                  Deel je code om met vrienden te verbinden
                 </p>
               </div>
             </div>
@@ -154,50 +166,103 @@ export default function InvitePage() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg md:text-xl font-semibold">Your Friend Code</h2>
-                  <p className="text-xs md:text-sm text-muted-foreground">Share with friends to connect</p>
+                  <h2 className="text-lg md:text-xl font-semibold">Je vriendencode</h2>
+                  <p className="text-xs md:text-sm text-muted-foreground">Deel met vrienden om te verbinden</p>
                 </div>
               </div>
 
               <div className="space-y-2 md:space-y-3">
                 <div className="p-3 md:p-4 bg-card rounded-lg border border-border">
-                  <p className="text-xs font-semibold text-muted-foreground mb-1 md:mb-2">YOUR INVITE CODE</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1 md:mb-2">JOUW UITNODIGINGSCODE</p>
                   <p className="font-mono text-sm md:text-lg break-all">{profile.invite_code}</p>
                 </div>
 
-                <button
-                  onClick={handleCopyCode}
-                  className="w-full py-2 md:py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base"
-                >
-                  {copied ? (
-                    <>
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      Copy Friend Code
-                    </>
-                  )}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCopyCode}
+                    className="flex-1 py-2 md:py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base"
+                  >
+                    {copied ? (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Gekopieerd!
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Kopiëren
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowQrModal(true)}
+                    className="flex-1 py-2 md:py-3 px-4 bg-card border border-border hover:bg-accent rounded-lg transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                    QR-code
+                  </button>
+                </div>
               </div>
             </div>
+
+          {/* QR Code Modal */}
+          {showQrModal && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowQrModal(false)}
+            >
+              <div
+                className="bg-card border border-border rounded-xl p-6 max-w-sm w-full shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Scan om te verbinden</h3>
+                  <button
+                    onClick={() => setShowQrModal(false)}
+                    className="p-2 hover:bg-accent rounded-lg transition-colors"
+                    aria-label="Sluiten"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex justify-center p-4 bg-white rounded-lg dark:bg-white">
+                  <QRCodeSVG
+                    value={typeof window !== 'undefined' ? `${window.location.origin}/invite?code=${profile.invite_code}` : ''}
+                    size={200}
+                    level="M"
+                    includeMargin={true}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground text-center mt-4">
+                  Laat een vriend deze QR-code scannen om je toe te voegen
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Add Contact Section */}
           <div className="bg-card border border-border rounded-xl p-4 md:p-6 space-y-3 md:space-y-4">
             <div>
-              <h2 className="text-lg md:text-xl font-semibold mb-1 md:mb-2">Add a Friend</h2>
+              <h2 className="text-lg md:text-xl font-semibold mb-1 md:mb-2">Vriend toevoegen</h2>
               <p className="text-xs md:text-sm text-muted-foreground">
-                Enter someone's invite code to start chatting
+                Voer iemands uitnodigingscode in om te chatten
               </p>
             </div>
 
             <form onSubmit={handleAddContact} className="space-y-3 md:space-y-4">
+              {codeFromUrl && (
+                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500 text-green-600 dark:text-green-400 text-sm">
+                  Code gevonden! Klik op Contact toevoegen om te verbinden.
+                </div>
+              )}
               {error && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
                   {error}
@@ -212,7 +277,7 @@ export default function InvitePage() {
 
               <div>
                 <label htmlFor="inviteCode" className="block text-sm font-medium mb-2">
-                  Friend's Invite Code
+                  Uitnodigingscode van vriend
                 </label>
                 <input
                   id="inviteCode"
@@ -221,7 +286,7 @@ export default function InvitePage() {
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value)}
                   className="w-full px-4 py-3 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono"
-                  placeholder="Enter invite code"
+                  placeholder="Voer uitnodigingscode in"
                 />
               </div>
 
@@ -233,14 +298,14 @@ export default function InvitePage() {
                 {loading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
-                    Adding contact...
+                    Contact toevoegen...
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
-                    Add Contact
+                    Contact toevoegen
                   </>
                 )}
               </button>
@@ -252,5 +317,17 @@ export default function InvitePage() {
       {/* Mobile Navigation */}
       <MobileNavigation isParent={profile?.role === 'parent'} />
     </div>
+  )
+}
+
+export default function InvitePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
+      </div>
+    }>
+      <InvitePageContent />
+    </Suspense>
   )
 }

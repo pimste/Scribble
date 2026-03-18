@@ -278,13 +278,13 @@ export default function ChatPage() {
             .from('profiles')
             .select('id, username, display_name')
             .in('id', otherSenderIds)
-          const names: Record<string, string> = { [profile.id]: 'You' }
+          const names: Record<string, string> = { [profile.id]: 'Jij' }
           senderProfiles?.forEach(p => {
             names[p.id] = p.display_name || p.username
           })
           setSenderNames(names)
         } else {
-          setSenderNames({ [profile.id]: 'You' })
+          setSenderNames({ [profile.id]: 'Jij' })
         }
       } else {
         const { data: messagesData } = await supabase
@@ -443,7 +443,7 @@ export default function ChatPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="animate-pulse text-muted-foreground">Laden...</div>
       </div>
     )
   }
@@ -469,12 +469,12 @@ export default function ChatPage() {
           )}
           
           <h1 className="text-xl md:text-2xl font-bold">
-            {mobileView === 'contacts' ? 'Scribble' : isDiaryView ? 'Diary' : selectedContact?.username ?? 'Scribble'}
+            {mobileView === 'contacts' ? 'Scribble' : isDiaryView ? 'Dagboek' : selectedContact?.username ?? 'Scribble'}
           </h1>
           
           {profile && (
             <span className="hidden lg:block text-sm text-muted-foreground">
-              Welcome, {profile.username}
+              Welkom, {profile.username}
             </span>
           )}
         </div>
@@ -485,7 +485,7 @@ export default function ChatPage() {
             <button
               onClick={() => setMobileView('info')}
               className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors"
-              title="Contact Info"
+              title="Contactinfo"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -498,7 +498,7 @@ export default function ChatPage() {
             <button
               onClick={() => setShowUserInfo(!showUserInfo)}
               className="hidden lg:flex p-2 rounded-lg border border-border hover:bg-accent transition-colors"
-              title={showUserInfo ? "Hide contact info" : "Show contact info"}
+              title={showUserInfo ? "Verberg contactinfo" : "Toon contactinfo"}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -510,7 +510,7 @@ export default function ChatPage() {
           <button
             onClick={handleStartTour}
             className="hidden md:flex p-2 rounded-lg border border-border hover:bg-accent transition-colors"
-            title="Take a tour"
+            title="Rondleiding"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -525,7 +525,7 @@ export default function ChatPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
-            <span className="hidden lg:inline">Invite</span>
+            <span className="hidden lg:inline">Uitnodigen</span>
           </Link>
           
           {profile?.role === 'parent' && (
@@ -536,14 +536,14 @@ export default function ChatPage() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              <span className="hidden lg:inline">Parent</span>
+              <span className="hidden lg:inline">Ouder</span>
             </Link>
           )}
           
           <Link
             href="/settings"
             className="hidden md:flex p-2 rounded-lg border border-border hover:bg-accent transition-colors"
-            title="Settings"
+            title="Instellingen"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -557,7 +557,7 @@ export default function ChatPage() {
             onClick={handleLogout}
             className="hidden md:flex px-3 lg:px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors text-sm font-medium"
           >
-            Logout
+            Uitloggen
           </button>
         </div>
       </div>
@@ -608,8 +608,8 @@ export default function ChatPage() {
               <svg className="w-24 h-24 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              <p className="text-lg font-medium">Select a contact to start chatting</p>
-              <p className="text-sm mt-2">Choose a conversation from the list</p>
+              <p className="text-lg font-medium">Selecteer een contact om te chatten</p>
+              <p className="text-sm mt-2">Kies een gesprek uit de lijst</p>
             </div>
           )}
         </div>

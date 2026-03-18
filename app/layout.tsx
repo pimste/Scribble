@@ -7,8 +7,18 @@ import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Scribble - Chat with Parental Controls",
-  description: "Secure chat application with parental oversight and invite-based connections",
+  title: "Scribble - Chat met Ouderlijk Toezicht",
+  description: "Veilige chat-app met ouderlijk toezicht en uitnodigingsverbindingen",
+  openGraph: {
+    title: "Scribble - Chat met Ouderlijk Toezicht",
+    description: "Veilige chat-app met ouderlijk toezicht en uitnodigingsverbindingen",
+    locale: "nl_NL",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Scribble - Chat met Ouderlijk Toezicht",
+    description: "Veilige chat-app met ouderlijk toezicht en uitnodigingsverbindingen",
+  },
 };
 
 export default function RootLayout({
@@ -17,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="nl" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider defaultTheme="system" storageKey="scribble-ui-theme">
           {children}

@@ -161,7 +161,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Upload failed')
-      onSendMessage(message.trim() || 'Image', 'image', data.url)
+      onSendMessage(message.trim() || 'Afbeelding', 'image', data.url)
       setMessage('')
     } catch (err) {
       console.error('Error uploading image:', err)
@@ -182,7 +182,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
     <div ref={inputContainerRef} className="p-4 border-t border-border bg-card min-w-0 overflow-hidden">
       {isRestricted && (
         <div className="mb-3 p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
-          Your account has been restricted by your parent. You cannot send messages.
+          Je account is beperkt door je ouder. Je kunt geen berichten versturen.
         </div>
       )}
       
@@ -198,7 +198,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
               }}
               disabled={disabled || isRestricted}
               className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Add emoji"
+              title="Emoji toevoegen"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -229,7 +229,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
               }}
               disabled={disabled || isRestricted}
               className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Attach"
+              title="Bijvoegen"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -294,7 +294,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                   type="text"
                   value={gifSearch}
                   onChange={(e) => setGifSearch(e.target.value)}
-                  placeholder="Search GIFs..."
+                  placeholder="Zoek GIFs..."
                   className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -305,7 +305,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                   </div>
                 ) : gifs.length === 0 ? (
                   <div className="col-span-2 text-center text-muted-foreground py-8">
-                    No GIFs found
+                    Geen GIFs gevonden
                   </div>
                 ) : (
                   gifs.map((gif) => (
@@ -336,7 +336,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
             onChange={(e) => setMessage(e.target.value)}
             onBlur={handleInputBlur}
             disabled={disabled || isRestricted}
-            placeholder={isRestricted ? "Messaging restricted" : "Type a message..."}
+            placeholder={isRestricted ? "Berichten beperkt" : "Typ een bericht..."}
             className="flex-1 min-w-0 px-4 py-2 border border-input rounded-full bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           />
           
@@ -346,7 +346,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
             disabled={disabled || isRestricted || !message.trim()}
             className="flex-shrink-0 px-6 py-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
-            Send
+            Versturen
           </button>
         </div>
       </form>

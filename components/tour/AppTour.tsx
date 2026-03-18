@@ -35,55 +35,55 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
   const childSteps: TourStep[] = [
     {
       id: 'welcome',
-      title: 'Welcome to Scribble!',
-      description: "Hey there! Let's take a quick tour of your awesome new chat app. It's super easy and fun!",
+      title: 'Welkom bij Scribble!',
+      description: "Hé! Laten we een snelle rondleiding doen door je nieuwe chat-app. Het is super makkelijk en leuk!",
       icon: 'wave',
       position: { top: '50%', left: '50%' }
     },
     {
       id: 'contacts',
-      title: 'Your Friends List',
-      description: "This is where all your friends appear! Click on a friend's name to start chatting with them.",
+      title: 'Je vriendenlijst',
+      description: "Hier verschijnen al je vrienden! Klik op de naam van een vriend om te chatten.",
       icon: 'users',
       position: { top: '20%', left: '10%' },
       highlight: 'contacts'
     },
     {
       id: 'chat',
-      title: 'Chat Area',
-      description: "Here's where the magic happens! All your messages with friends show up here in colorful bubbles!",
+      title: 'Chatgebied',
+      description: "Hier gebeurt het! Al je berichten met vrienden verschijnen hier in kleurrijke bubbels!",
       icon: 'chat',
       position: { top: '30%', left: '50%' },
       highlight: 'chat'
     },
     {
       id: 'input',
-      title: 'Send Messages',
-      description: 'Type your message here and hit send! You can also send fun GIFs by clicking the GIF button!',
+      title: 'Berichten versturen',
+      description: 'Typ hier je bericht en druk op versturen! Je kunt ook leuke GIFs sturen via de GIF-knop!',
       icon: 'pencil',
       position: { bottom: '15%', left: '50%' },
       highlight: 'input'
     },
     {
       id: 'invite',
-      title: 'Add Friends',
-      description: "Want to chat with someone new? Click 'Invite' at the top to share your code or add a friend's code!",
+      title: 'Vrienden toevoegen',
+      description: "Wil je met iemand nieuw chatten? Klik op 'Uitnodigen' bovenaan om je code te delen of die van een vriend in te voeren!",
       icon: 'userplus',
       position: { top: '8%', right: '20%' },
       highlight: 'invite'
     },
     {
       id: 'settings',
-      title: 'Your Settings',
-      description: 'Customize your profile, change your theme, and make Scribble yours!',
+      title: 'Je instellingen',
+      description: 'Pas je profiel aan, verander je thema en maak Scribble van jou!',
       icon: 'settings',
       position: { top: '8%', right: '10%' },
       highlight: 'settings'
     },
     {
       id: 'done',
-      title: "You're All Set!",
-      description: "That's it! You're ready to start chatting. Have fun and be kind to your friends!",
+      title: "Je bent er klaar voor!",
+      description: "Dat was het! Je kunt nu beginnen met chatten. Veel plezier en wees lief voor je vrienden!",
       icon: 'check',
       position: { top: '50%', left: '50%' }
     }
@@ -92,47 +92,47 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
   const parentSteps: TourStep[] = [
     {
       id: 'welcome',
-      title: 'Welcome to Scribble',
-      description: "Let's show you around! Scribble helps your family stay connected safely.",
+      title: 'Welkom bij Scribble',
+      description: "Laten we je rondleiden! Scribble helpt je gezin veilig verbonden te blijven.",
       icon: 'wave',
       position: { top: '50%', left: '50%' }
     },
     {
       id: 'contacts',
-      title: 'Contacts & Conversations',
-      description: 'See all your connections here. Click on a contact to view your chat with them.',
+      title: 'Contacten en gesprekken',
+      description: 'Bekijk hier al je verbindingen. Klik op een contact om je chat te bekijken.',
       icon: 'users',
       position: { top: '20%', left: '10%' },
       highlight: 'contacts'
     },
     {
       id: 'parent-controls',
-      title: 'Parent Dashboard',
-      description: 'Access parental controls to monitor your children\'s activity and manage their chat permissions.',
+      title: 'Ouderdashboard',
+      description: 'Toegang tot ouderlijk toezicht om de activiteit van je kinderen te monitoren en chatrechten te beheren.',
       icon: 'shield',
       position: { top: '8%', right: '25%' },
       highlight: 'parent'
     },
     {
       id: 'invite',
-      title: 'Connect With Family',
-      description: "Share your invite code with family members so they can add you. You can also add others using their codes!",
+      title: 'Verbinden met familie',
+      description: "Deel je uitnodigingscode met familieleden zodat ze je kunnen toevoegen. Je kunt ook anderen toevoegen met hun codes!",
       icon: 'userplus',
       position: { top: '8%', right: '20%' },
       highlight: 'invite'
     },
     {
       id: 'settings',
-      title: 'Settings',
-      description: 'Customize your profile and app preferences here.',
+      title: 'Instellingen',
+      description: 'Pas hier je profiel en appvoorkeuren aan.',
       icon: 'settings',
       position: { top: '8%', right: '10%' },
       highlight: 'settings'
     },
     {
       id: 'done',
-      title: "You're Ready!",
-      description: "You're all set! Enjoy staying connected with your family safely.",
+      title: "Je bent er klaar voor!",
+      description: "Dat was het! Geniet van veilig verbonden blijven met je gezin.",
       icon: 'check',
       position: { top: '50%', left: '50%' }
     }
@@ -141,43 +141,43 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
   const childStepsMobile: TourStep[] = [
     {
       id: 'welcome',
-      title: 'Welcome to Scribble!',
-      description: "Hey there! Let's take a quick tour. Tap through to learn the basics!",
+      title: 'Welkom bij Scribble!',
+      description: "Hé! Laten we een snelle rondleiding doen. Tik door om de basis te leren!",
       icon: 'wave',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'contacts',
-      title: 'Your Friends List',
-      description: "Your friends appear here! Tap a name to open a chat.",
+      title: 'Je vriendenlijst',
+      description: "Je vrienden verschijnen hier! Tik op een naam om een chat te openen.",
       icon: 'users',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'chat',
-      title: 'Chat Area',
-      description: "Messages show up here in colorful bubbles. Scroll to see your conversation!",
+      title: 'Chatgebied',
+      description: "Berichten verschijnen hier in kleurrijke bubbels. Scroll om je gesprek te zien!",
       icon: 'chat',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'input',
-      title: 'Send Messages',
-      description: "Type here and tap Send! Use the GIF button for fun animations.",
+      title: 'Berichten versturen',
+      description: "Typ hier en tik op Versturen! Gebruik de GIF-knop voor leuke animaties.",
       icon: 'pencil',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'bottom-nav',
-      title: 'Bottom Navigation',
-      description: "Use the bar below: Chats, Invite, Settings, and Tour. Tap Invite to add friends!",
+      title: 'Ondernavigatie',
+      description: "Gebruik de balk hieronder: Chats, Uitnodigen, Instellingen en Rondleiding. Tik op Uitnodigen om vrienden toe te voegen!",
       icon: 'userplus',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'done',
-      title: "You're All Set!",
-      description: "That's it! Have fun chatting. Be kind to your friends!",
+      title: "Je bent er klaar voor!",
+      description: "Dat was het! Veel plezier met chatten. Wees lief voor je vrienden!",
       icon: 'check',
       position: { bottom: '25%', left: '50%' }
     }
@@ -186,29 +186,29 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
   const parentStepsMobile: TourStep[] = [
     {
       id: 'welcome',
-      title: 'Welcome to Scribble',
-      description: "Let's show you around! Scribble helps your family stay connected safely.",
+      title: 'Welkom bij Scribble',
+      description: "Laten we je rondleiden! Scribble helpt je gezin veilig verbonden te blijven.",
       icon: 'wave',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'contacts',
-      title: 'Contacts & Conversations',
-      description: 'See all your connections here. Tap a contact to view your chat.',
+      title: 'Contacten en gesprekken',
+      description: 'Bekijk hier al je verbindingen. Tik op een contact om je chat te bekijken.',
       icon: 'users',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'bottom-nav',
-      title: 'Bottom Navigation',
-      description: "Use the bar below: Chats, Invite, Parent controls, Settings, and Tour.",
+      title: 'Ondernavigatie',
+      description: "Gebruik de balk hieronder: Chats, Uitnodigen, Ouderlijk toezicht, Instellingen en Rondleiding.",
       icon: 'shield',
       position: { bottom: '25%', left: '50%' }
     },
     {
       id: 'done',
-      title: "You're Ready!",
-      description: "You're all set! Enjoy staying connected with your family safely.",
+      title: "Je bent er klaar voor!",
+      description: "Dat was het! Geniet van veilig verbonden blijven met je gezin.",
       icon: 'check',
       position: { bottom: '25%', left: '50%' }
     }
@@ -367,7 +367,7 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
                 onClick={handleSkip}
                 className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Skip Tour
+                Rondleiding overslaan
               </button>
               
               <div className="flex gap-2">
@@ -376,14 +376,14 @@ export function AppTour({ isOpen, onClose, userRole = 'child' }: AppTourProps) {
                     onClick={handlePrevious}
                     className="px-4 py-2 rounded-lg border border-border hover:bg-accent transition-colors text-sm font-medium"
                   >
-                    Back
+                    Terug
                   </button>
                 )}
                 <button
                   onClick={handleNext}
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium shadow-lg hover:shadow-xl transition-all text-sm"
                 >
-                  {currentStep === steps.length - 1 ? "Let's Go!" : 'Next'}
+                  {currentStep === steps.length - 1 ? 'Aan de slag!' : 'Volgende'}
                 </button>
               </div>
             </div>

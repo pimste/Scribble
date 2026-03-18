@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const { email } = await request.json();
 
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+      return NextResponse.json({ error: 'E-mail is verplicht' }, { status: 400 });
     }
 
     // Generate 6-digit code
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error sending verification code:', error);
     return NextResponse.json(
-      { error: 'Failed to send verification code' },
+      { error: 'Verificatiecode versturen mislukt' },
       { status: 500 }
     );
   }
@@ -67,22 +67,22 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code');
 
     if (!email || !code) {
-      return NextResponse.json({ error: 'Email and code are required' }, { status: 400 });
+      return NextResponse.json({ error: 'E-mail en code zijn verplicht' }, { status: 400 });
     }
 
     const storedData = verificationCodes.get(email);
 
     if (!storedData) {
-      return NextResponse.json({ error: 'Invalid or expired code' }, { status: 400 });
+      return NextResponse.json({ error: 'Ongeldige of verlopen code' }, { status: 400 });
     }
 
     if (Date.now() > storedData.expires) {
       verificationCodes.delete(email);
-      return NextResponse.json({ error: 'Code has expired' }, { status: 400 });
+      return NextResponse.json({ error: 'Code is verlopen' }, { status: 400 });
     }
 
     if (storedData.code !== code) {
-      return NextResponse.json({ error: 'Invalid code' }, { status: 400 });
+      return NextResponse.json({ error: 'Ongeldige code' }, { status: 400 });
     }
 
     // Code is valid, delete it
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error verifying code:', error);
     return NextResponse.json(
-      { error: 'Failed to verify code' },
+      { error: 'Code verifiëren mislukt' },
       { status: 500 }
     );
   }

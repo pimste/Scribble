@@ -3,6 +3,20 @@
   "devCommand": "next dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "scribble.eu" }],
+      "destination": "https://scribbeapp.nl/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.scribble.eu" }],
+      "destination": "https://scribbeapp.nl/$1",
+      "permanent": true
+    }
+  ]
 }
 

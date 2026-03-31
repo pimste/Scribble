@@ -21,8 +21,18 @@ interface ConversationSafetyResult {
   explanation: string
 }
 
+const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+const FALLBACK_OPENAI_MODEL = 'gpt-4o-mini'
+
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: 'OpenAI configuratie ontbreekt (OPENAI_API_KEY)' },
+        { status: 500 }
+      )
+    }
+
     // Create Supabase client with cookies for auth
     const supabase = await createServerClient()
 
@@ -99,8 +109,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error in analyze-messages API:', error)
+    const message = error instanceof Error ? error.message : 'Interne serverfout'
     return NextResponse.json(
-      { error: 'Interne serverfout' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -155,20 +166,44 @@ Respond ONLY with a JSON object in this exact format:
 The "concerns" array should only include the types of concerns found (in Dutch). If the conversation is safe, return an empty array.
 Be strict but fair. Context matters - friendly banter between friends is different from actual bullying.`
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Analyze this conversation:\n\n${conversationText}` },
-    ],
-    temperature: 0.3,
-    max_tokens: 300,
-  })
+  const runAnalysis = async (model: string) => {
+    const response = await openai.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Analyze this conversation:\n\n${conversationText}` },
+      ],
+      temperature: 0.3,
+      max_tokens: 300,
+    })
+    return response.choices[0]?.message?.content || '{}'
+  }
 
-  const responseText = response.choices[0]?.message?.content || '{}'
+  let responseText = '{}'
+  try {
+    responseText = await runAnalysis(DEFAULT_OPENAI_MODEL)
+  } catch (primaryError: any) {
+    const primaryMessage = primaryError?.message || ''
+    const shouldFallback =
+      DEFAULT_OPENAI_MODEL !== FALLBACK_OPENAI_MODEL &&
+      (primaryMessage.toLowerCase().includes('model') ||
+        primaryMessage.toLowerCase().includes('not found') ||
+        primaryMessage.toLowerCase().includes('does not exist'))
+
+    if (!shouldFallback) {
+      throw primaryError
+    }
+
+    responseText = await runAnalysis(FALLBACK_OPENAI_MODEL)
+  }
   
   try {
-    const analysis = JSON.parse(responseText)
+    const cleaned = responseText
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim()
+    const analysis = JSON.parse(cleaned)
     return {
       isSafe: analysis.isSafe ?? true,
       concerns: Array.isArray(analysis.concerns) ? analysis.concerns : [],

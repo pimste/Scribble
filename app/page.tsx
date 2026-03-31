@@ -183,6 +183,12 @@ export default function Home() {
               Ouders kunnen niet meelezen in gesprekken. Je krijgt alleen een signaal wanneer dat echt nodig is.
               Kinderen houden hun privacy, ouders houden overzicht.
             </p>
+            <p className="text-[#b8bcdd]">
+              Geen data-verkoop. Geen tracking. Europese servers. In deze testfase is Scribble helemaal gratis - we
+              willen eerst luisteren, leren en samen bouwen. Daarna wordt het een betaalde app. Bewust. Want als iets
+              gratis blijft, wordt jouw data het verdienmodel. En dat is precies wat we niet willen. Jij betaalt straks
+              voor de app - niet met je gegevens.
+            </p>
             <Link
               href="/register"
               className="inline-flex rounded-full bg-gradient-to-r from-[#d837b8] to-[#ff57cc] px-7 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(216,55,184,0.55)] transition-transform hover:scale-[1.02]"

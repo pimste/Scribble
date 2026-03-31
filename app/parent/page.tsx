@@ -30,6 +30,7 @@ export default function ParentPage() {
   const [analyzingConversation, setAnalyzingConversation] = useState(false)
   const [analyzingNew, setAnalyzingNew] = useState(false)
   const [conversationSafety, setConversationSafety] = useState<ConversationSafety | null>(null)
+  const [analysisError, setAnalysisError] = useState('')
   const [lastCheckedTimes, setLastCheckedTimes] = useState<Record<string, string>>({})
   const [showAddChild, setShowAddChild] = useState(false)
   const [addChildForm, setAddChildForm] = useState({
@@ -164,6 +165,7 @@ export default function ParentPage() {
     }
     
     try {
+      setAnalysisError('')
       const conversationKey = `${childId}:${contactId}`
       const lastChecked = onlyNew ? lastCheckedTimes[conversationKey] : undefined
       
@@ -176,28 +178,31 @@ export default function ParentPage() {
           sinceTimestamp: lastChecked
         }),
       })
+      const data = await response.json().catch(() => ({}))
 
-      if (response.ok) {
-        const data = await response.json()
-        setConversationSafety({
-          isSafe: data.isSafe,
-          concerns: data.concerns,
-          explanation: data.explanation,
-          messageCount: data.messageCount,
-          analyzedNewOnly: data.analyzedNewOnly,
-        })
-        
-        // Update last checked time and save to localStorage
-        const now = new Date().toISOString()
-        const newTimes = { ...lastCheckedTimes, [conversationKey]: now }
-        setLastCheckedTimes(newTimes)
-        
-        if (profile) {
-          localStorage.setItem(`parentChecks:${profile.id}`, JSON.stringify(newTimes))
-        }
+      if (!response.ok) {
+        throw new Error(data.error || `Analyse mislukt (${response.status})`)
+      }
+
+      setConversationSafety({
+        isSafe: data.isSafe,
+        concerns: data.concerns,
+        explanation: data.explanation,
+        messageCount: data.messageCount,
+        analyzedNewOnly: data.analyzedNewOnly,
+      })
+      
+      // Update last checked time and save to localStorage
+      const now = new Date().toISOString()
+      const newTimes = { ...lastCheckedTimes, [conversationKey]: now }
+      setLastCheckedTimes(newTimes)
+      
+      if (profile) {
+        localStorage.setItem(`parentChecks:${profile.id}`, JSON.stringify(newTimes))
       }
     } catch (error) {
       console.error('Error analyzing conversation:', error)
+      setAnalysisError(error instanceof Error ? error.message : 'Analyseren mislukt')
     } finally {
       setAnalyzingConversation(false)
       setAnalyzingNew(false)
@@ -538,6 +543,10 @@ export default function ParentPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                         <p>Nog geen gesprek</p>
+                      </div>
+                    ) : analysisError ? (
+                      <div className="p-4 rounded-lg border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 text-sm">
+                        {analysisError}
                       </div>
                     ) : !conversationSafety ? (
                       <div className="text-center py-12">

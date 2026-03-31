@@ -52,7 +52,7 @@ export function MobileNavigation({ isParent = false, onStartTour }: MobileNaviga
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#11132c] border-t border-[#2d3055] z-50 md:hidden safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 md:hidden safe-area-pb dark:bg-[#11132c] dark:border-[#2d3055]">
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const isActive = pathname === item.path
@@ -62,8 +62,8 @@ export function MobileNavigation({ isParent = false, onStartTour }: MobileNaviga
               href={item.path}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                 isActive
-                  ? 'text-[#9BE15D]'
-                  : 'text-[#9094bf] hover:text-[#f5f6ff]'
+                  ? 'text-primary dark:text-[#9BE15D]'
+                  : 'text-muted-foreground hover:text-foreground dark:text-[#9094bf] dark:hover:text-[#f5f6ff]'
               }`}
             >
               <div className={`${isActive ? 'scale-110' : ''} transition-transform`}>
@@ -76,7 +76,7 @@ export function MobileNavigation({ isParent = false, onStartTour }: MobileNaviga
         {onStartTour && (
           <button
             onClick={onStartTour}
-            className="flex flex-col items-center justify-center flex-1 h-full transition-colors text-[#9094bf] hover:text-[#f5f6ff]"
+            className="flex flex-col items-center justify-center flex-1 h-full transition-colors text-muted-foreground hover:text-foreground dark:text-[#9094bf] dark:hover:text-[#f5f6ff]"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

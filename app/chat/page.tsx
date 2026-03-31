@@ -449,9 +449,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[#11132c] md:bg-background overflow-hidden text-[#f5f6ff] md:text-foreground">
+    <div className="h-screen flex flex-col bg-background overflow-hidden text-foreground dark:bg-[#11132c] dark:text-[#f5f6ff] md:dark:bg-background md:dark:text-foreground">
       {/* Desktop/Tablet Header */}
-      <div className="h-14 md:h-16 border-b border-[#2d3055] md:border-border bg-[#171936] md:bg-card px-3 md:px-6 flex items-center justify-between">
+      <div className="h-14 md:h-16 border-b border-border bg-card px-3 md:px-6 flex items-center justify-between dark:border-[#2d3055] dark:bg-[#171936] md:dark:border-border md:dark:bg-card">
         <div className="flex items-center gap-2 md:gap-4">
           {/* Mobile back button */}
           {mobileView !== 'contacts' && (
@@ -460,7 +460,7 @@ export default function ChatPage() {
                 if (mobileView === 'info') setMobileView('chat')
                 else setMobileView('contacts')
               }}
-              className="md:hidden p-2 hover:bg-[#262a52] rounded-lg"
+              className="md:hidden p-2 hover:bg-accent dark:hover:bg-[#262a52] md:dark:hover:bg-accent rounded-lg"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -473,7 +473,7 @@ export default function ChatPage() {
           </h1>
           
           {profile && (
-            <span className="hidden lg:block text-sm text-[#9ca1c8] md:text-muted-foreground">
+            <span className="hidden lg:block text-sm text-muted-foreground dark:text-[#9ca1c8] md:dark:text-muted-foreground">
               Welkom, {profile.username}
             </span>
           )}
@@ -484,7 +484,7 @@ export default function ChatPage() {
           {mobileView === 'chat' && (selectedContact || isDiaryView) && (
             <button
               onClick={() => setMobileView('info')}
-              className="md:hidden p-2 rounded-lg hover:bg-[#262a52] transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-accent dark:hover:bg-[#262a52] md:dark:hover:bg-accent transition-colors"
               title="Contactinfo"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -580,7 +580,7 @@ export default function ChatPage() {
 
         {/* Middle Panel - Chat Messages */}
         <div className={`
-          flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden bg-[#11132c] md:bg-background
+          flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden bg-background dark:bg-[#11132c] md:dark:bg-background
           ${mobileView === 'chat' ? 'flex' : 'hidden'}
           md:flex
         `}>
@@ -604,7 +604,7 @@ export default function ChatPage() {
               />
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-[#9ca1c8] md:text-muted-foreground p-6 text-center">
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground dark:text-[#9ca1c8] md:dark:text-muted-foreground p-6 text-center">
               <svg className="w-24 h-24 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>

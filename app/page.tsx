@@ -250,13 +250,12 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="grid grid-cols-5 border-t border-[#2d3055] bg-[#11132c] px-2 py-2">
+            <div className="grid grid-cols-4 border-t border-[#2d3055] bg-[#11132c] px-2 py-2">
               {[
                 { label: 'Chats', active: true },
                 { label: 'Uitnodigen', active: false },
                 { label: 'Ouder', active: false },
                 { label: 'Instellingen', active: false },
-                { label: 'Rondleiding', active: false },
               ].map((tab) => (
                 <div key={tab.label} className="flex flex-col items-center gap-1 py-1">
                   <span className={`h-2.5 w-2.5 rounded-full ${tab.active ? 'bg-[#9BE15D]' : 'bg-[#9094bf]'}`} />

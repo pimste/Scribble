@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
-import { ThemeToggle } from '@/components/theme-toggle'
 
 function LoginForm() {
   const [identifier, setIdentifier] = useState('') // email or username
@@ -61,66 +60,53 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-      
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <Image 
-              src="/scribble_logo.png" 
-              alt="Scribble Logo" 
-              width={60} 
-              height={60}
+    <div className="min-h-screen flex items-center justify-center bg-[#11132c] p-4">
+      <div className="max-w-sm w-full space-y-8">
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <Image
+              src="/scribble_logo.png"
+              alt="Scribble Logo"
+              width={92}
+              height={92}
               className="object-contain"
             />
-            <h1 className="text-4xl font-bold text-black dark:text-white">SCRIBBLE</h1>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold">Welkom terug</h2>
-            <p className="mt-2 text-muted-foreground">Log in op je account</p>
-          </div>
+          <h1 className="text-base font-medium tracking-[0.24em] text-white/95">SCRIBBLE</h1>
         </div>
 
-        <form onSubmit={handleLogin} className="mt-8 space-y-6 bg-card p-8 rounded-xl border border-border shadow-lg">
+        <form onSubmit={handleLogin} className="space-y-5 rounded-2xl bg-[#222447] p-5 border border-[#2f3362] shadow-2xl">
+          <div>
+            <p className="text-sm text-white/85">Sign in</p>
+          </div>
+
           {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
+            <div className="p-3 rounded-lg bg-red-500/15 border border-red-400/40 text-red-100 text-sm">
               {error}
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-medium mb-2">
-                E-mail of gebruikersnaam
-              </label>
               <input
                 id="identifier"
                 type="text"
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="jan@voorbeeld.nl of gebruikersnaam"
+                className="w-full px-4 py-2.5 rounded-full border border-[#61679b] bg-transparent text-white placeholder:text-[#9ca1c8] focus:outline-none focus:ring-2 focus:ring-[#d837b8]"
+                placeholder="jouw@email.com"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Ouders gebruiken e-mail, kinderen gebruiken gebruikersnaam
-              </p>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Wachtwoord
-              </label>
               <input
                 id="password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-2.5 rounded-full border border-[#61679b] bg-transparent text-white placeholder:text-[#9ca1c8] focus:outline-none focus:ring-2 focus:ring-[#d837b8]"
                 placeholder="••••••••"
               />
             </div>
@@ -129,15 +115,15 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
+            className="w-full py-2.5 px-4 bg-[#d837b8] text-white rounded-full hover:bg-[#c533a7] transition-colors text-sm font-semibold uppercase tracking-wider disabled:opacity-50"
           >
-            {loading ? 'Bezig met inloggen...' : 'Inloggen'}
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
 
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-xs text-[#b9bde1]">
             Nog geen account?{' '}
-            <Link href="/register" className="text-primary hover:underline font-medium">
-              Account aanmaken
+            <Link href="/register" className="text-white hover:underline font-semibold">
+              Aanmaken
             </Link>
           </p>
         </form>
@@ -149,8 +135,8 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10">
-        <div className="animate-pulse text-muted-foreground">Laden...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#11132c]">
+        <div className="animate-pulse text-white/70">Laden...</div>
       </div>
     }>
       <LoginForm />

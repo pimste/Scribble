@@ -13,17 +13,17 @@ interface SidebarProps {
 
 export function Sidebar({ contacts, selectedContactId, onSelectContact, currentUserId }: SidebarProps) {
   return (
-    <div className="w-full h-full bg-card border-r border-border overflow-y-auto">
-      <div className="p-4 border-b border-border">
+    <div className="w-full h-full bg-[#171936] md:bg-card border-r border-[#2d3055] md:border-border overflow-y-auto text-[#f5f6ff] md:text-foreground">
+      <div className="p-4 border-b border-[#2d3055] md:border-border">
         <h2 className="text-lg font-semibold">Chats</h2>
       </div>
       
-      <div className="divide-y divide-border">
+      <div className="divide-y divide-[#2d3055] md:divide-border">
         {/* Diary entry at top */}
         <button
           onClick={() => onSelectContact(DIARY_ID)}
-          className={`w-full p-4 text-left hover:bg-accent transition-colors flex items-center gap-3 ${
-            selectedContactId === DIARY_ID ? 'bg-accent' : ''
+          className={`w-full p-4 text-left hover:bg-[#23264b] md:hover:bg-accent transition-colors flex items-center gap-3 ${
+            selectedContactId === DIARY_ID ? 'bg-[#2a2d57] md:bg-accent' : ''
           }`}
         >
           <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
@@ -33,12 +33,12 @@ export function Sidebar({ contacts, selectedContactId, onSelectContact, currentU
           </div>
           <div>
             <p className="font-medium">Dagboek</p>
-            <p className="text-xs text-muted-foreground">Notities en opgeslagen berichten</p>
+            <p className="text-xs text-[#9ca1c8] md:text-muted-foreground">Notities en opgeslagen berichten</p>
           </div>
         </button>
 
         {contacts.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground">
+          <div className="p-4 text-center text-[#9ca1c8] md:text-muted-foreground">
             Nog geen contacten. Gebruik een uitnodigingscode om te verbinden!
           </div>
         ) : (
@@ -46,8 +46,8 @@ export function Sidebar({ contacts, selectedContactId, onSelectContact, currentU
             <button
               key={contact.id}
               onClick={() => onSelectContact(contact.id)}
-              className={`w-full p-4 text-left hover:bg-accent transition-colors ${
-                selectedContactId === contact.id ? 'bg-accent' : ''
+              className={`w-full p-4 text-left hover:bg-[#23264b] md:hover:bg-accent transition-colors ${
+                selectedContactId === contact.id ? 'bg-[#2a2d57] md:bg-accent' : ''
               }`}
             >
               <div className="flex items-center justify-between">
@@ -89,7 +89,7 @@ export function Sidebar({ contacts, selectedContactId, onSelectContact, currentU
                   </div>
                   <div>
                     <p className="font-medium">{contact.username}</p>
-                    <p className="text-xs text-muted-foreground">{contact.role === 'parent' ? 'Ouder' : 'Kind'}</p>
+                    <p className="text-xs text-[#9ca1c8] md:text-muted-foreground">{contact.role === 'parent' ? 'Ouder' : 'Kind'}</p>
                   </div>
                 </div>
                 {contact.restricted && (

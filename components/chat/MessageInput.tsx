@@ -196,7 +196,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
   }
 
   return (
-    <div ref={inputContainerRef} className="p-4 border-t border-border bg-card min-w-0 overflow-hidden">
+    <div ref={inputContainerRef} className="p-4 border-t border-[#2d3055] md:border-border bg-[#171936] md:bg-card min-w-0 overflow-hidden">
       {isRestricted && (
         <div className="mb-3 p-3 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm">
           Je account is beperkt door je ouder. Je kunt geen berichten versturen.
@@ -215,7 +215,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                 setShowGifPicker(false)
               }}
               disabled={disabled || isRestricted}
-              className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 hover:bg-[#262a52] md:hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Emoji toevoegen"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -241,7 +241,7 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
                 setShowEmojiPicker(false)
               }}
               disabled={disabled || isRestricted}
-              className="p-2 hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 hover:bg-[#262a52] md:hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Bijvoegen"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -365,14 +365,14 @@ export function MessageInput({ onSendMessage, disabled, isRestricted, onInputBlu
             onBlur={handleInputBlur}
             disabled={disabled || isRestricted}
             placeholder={isRestricted ? "Berichten beperkt" : "Typ een bericht..."}
-            className="flex-1 min-w-0 px-4 py-2 border border-input rounded-full bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 min-w-0 px-4 py-2 border border-[#4d5280] md:border-input rounded-full bg-[#11132c] md:bg-background text-[#f5f6ff] md:text-foreground placeholder:text-[#9ca1c8] md:placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#d837b8] md:focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
           />
           
           {/* Send Button */}
           <button
             type="submit"
             disabled={disabled || isRestricted || !message.trim()}
-            className="flex-shrink-0 px-6 py-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="flex-shrink-0 px-6 py-2 bg-[#d837b8] md:bg-primary text-white md:text-primary-foreground rounded-full hover:bg-[#c533a7] md:hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             Versturen
           </button>

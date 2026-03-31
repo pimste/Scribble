@@ -191,38 +191,78 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="mx-auto w-full max-w-[320px] rounded-[2rem] border border-[#4d5182] bg-[#1a1d3d] p-4 shadow-[0_12px_50px_rgba(5,8,30,0.75)]">
-            <div className="mb-3 flex items-center justify-between rounded-2xl border border-[#2d3055] bg-[#141735] px-3 py-2">
-              <div className="flex items-center gap-2">
-                <Image src="/scribble_logo.png" alt="Scribble logo" width={22} height={22} />
-                <span className="text-xs text-white/90">Scribble</span>
+          <div className="mx-auto w-full max-w-[360px] overflow-hidden rounded-[1.6rem] border border-[#40457b] bg-[#171936] shadow-[0_18px_60px_rgba(7,9,32,0.9)]">
+            <div className="flex items-center justify-between border-b border-[#2d3055] px-4 py-3">
+              <span className="text-xl font-semibold leading-none text-white">Scribble</span>
+              <div className="rounded-lg border border-[#4d5182] bg-[#11132c] p-2">
+                <svg className="h-4 w-4 text-[#e1e4ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
               </div>
-              <span className="h-2 w-2 rounded-full bg-[#7be55b]" />
             </div>
 
-            <div className="space-y-2">
-              {['Emma', 'Liam', 'Sophie', 'Daan'].map((name, index) => (
-                <div key={name} className="flex items-center gap-3 rounded-xl border border-[#2d3055] bg-[#141735] p-3">
+            <div className="border-b border-[#2d3055] px-4 py-3">
+              <h3 className="text-lg font-semibold text-white">Chats</h3>
+            </div>
+
+            <div className="divide-y divide-[#2d3055]">
+              <div className="flex items-center gap-3 px-4 py-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20 text-amber-300">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-base font-semibold leading-none text-white">Dagboek</p>
+                  <p className="mt-1 text-xs text-[#9ca1c8]">Notities en opgeslagen berichten</p>
+                </div>
+              </div>
+
+              {[
+                { name: 'Emma', role: 'Kind', color: '#ff4abf' },
+                { name: 'Liam', role: 'Kind', color: '#89e450' },
+                { name: 'Sophie', role: 'Kind', color: '#8d6bff' },
+                { name: 'Daan', role: 'Kind', color: '#3e99ff' },
+              ].map((item) => (
+                <div key={item.name} className="flex items-center gap-3 px-4 py-3">
                   <span
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold text-white"
-                    style={{
-                      backgroundColor: ['#ff4abf', '#89e450', '#8d6bff', '#3e99ff'][index],
-                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white"
+                    style={{ backgroundColor: item.color }}
                   >
-                    {name[0]}
+                    {item.name[0].toUpperCase()}
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-white">{name}</p>
-                    <p className="text-xs text-[#9ea4ce]">Hey! Ga je mee voetballen?</p>
+                    <p className="text-base font-semibold leading-none text-white">{item.name}</p>
+                    <p className="mt-1 text-xs text-[#9ca1c8]">{item.role}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-3 flex items-center justify-around rounded-2xl border border-[#2d3055] bg-[#141735] py-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#d837b8]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-white/30" />
-              <span className="h-2.5 w-2.5 rounded-full bg-white/30" />
+            <div className="grid grid-cols-5 border-t border-[#2d3055] bg-[#11132c] px-2 py-2">
+              {[
+                { label: 'Chats', active: true },
+                { label: 'Uitnodigen', active: false },
+                { label: 'Ouder', active: false },
+                { label: 'Instellingen', active: false },
+                { label: 'Rondleiding', active: false },
+              ].map((tab) => (
+                <div key={tab.label} className="flex flex-col items-center gap-1 py-1">
+                  <span className={`h-2.5 w-2.5 rounded-full ${tab.active ? 'bg-[#9BE15D]' : 'bg-[#9094bf]'}`} />
+                  <span className={`text-[10px] ${tab.active ? 'text-[#9BE15D]' : 'text-[#9094bf]'}`}>{tab.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

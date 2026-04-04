@@ -95,7 +95,7 @@ function LoginForm() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-full border border-[#61679b] bg-transparent text-white placeholder:text-[#9ca1c8] focus:outline-none focus:ring-2 focus:ring-[#d837b8]"
-                placeholder="jouw@email.com"
+                placeholder="email of gebruikersnaam"
               />
             </div>
 
